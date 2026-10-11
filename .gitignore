@@ -1,0 +1,14 @@
+# local DB passwords - never commit
+oracle_credentials.txt
+.env
+
+# generated output
+output_*.log
+report/results.json
+report/_run_*
+__pycache__/
+*.pyc
+
+# app (later)
+node_modules/
+dist/
