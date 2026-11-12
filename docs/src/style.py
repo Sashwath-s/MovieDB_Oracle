@@ -77,8 +77,8 @@ def page_number(c, d):
     c.restoreState()
 
 
-MEMBERS = [("Sashwath Swaminathan", "2024A3PS0361H"), ("Srujana N S", "2024A1PS0874H"),
-           ("Anushka Sahoo", "2024A1PS0937H"), ("Vinny Polamarasetty", "2024A1PS0930H"),
+MEMBERS = [("Sashwath Swaminathan", "2024A3PS0361H"), ("Vinny Polamarasetty", "2024A1PS0930H"),
+           ("Srujana N S", "2024A1PS0874H"), ("Anushka Sahoo", "2024A1PS0937H"),
            ("Dhwaj Kishore", "2024A1PS1187H")]
 
 

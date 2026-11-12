@@ -197,7 +197,7 @@ story += bullets([
 ])
 
 doc = SimpleDocTemplate(str(OUT), pagesize=PAGE, leftMargin=MARGIN, rightMargin=MARGIN, topMargin=16 * mm,
-                        bottomMargin=17 * mm, title="Database Design Document", author="Sashwath Swaminathan, Srujana N S, Anushka Sahoo, Vinny Polamarasetty, Dhwaj Kishore")
+                        bottomMargin=17 * mm, title="Database Design Document", author="Sashwath Swaminathan, Vinny Polamarasetty, Srujana N S, Anushka Sahoo, Dhwaj Kishore")
 doc.build(story, onFirstPage=page_number, onLaterPages=page_number)
 from pypdf import PdfReader
 print(OUT.name, "pages:", len(PdfReader(OUT).pages))
