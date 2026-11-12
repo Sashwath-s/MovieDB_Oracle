@@ -2,7 +2,7 @@
 
 A database project that mixes **Letterboxd** (rate, review and watchlist movies) with **BookMyShow** (find shows and book cinema seats), built on **Oracle 21c**.
 
-Right now people use one app to log the films they like and a totally different one to book tickets, so that data never ends up in the same place. We designed a single relational database for both halves, and we made the database itself enforce the important rules (like *a seat can't be sold twice for the same show*) using constraints, plus one trigger where a constraint wasn't enough.
+Right now people use one app to log the films they like and a totally different one to book tickets, so that data never ends up in the same place. We designed a single relational database for both halves, and we made the database itself enforce the important rules (like *a seat can't be sold twice for the same show*) using constraints, plus triggers and PL/SQL procedures where a constraint wasn't enough. A React + Express web app sits on top and calls those procedures, so every rule still lives in the database.
 
 ---
 
@@ -10,11 +10,11 @@ Right now people use one app to log the films they like and a totally different 
 
 | Name | ID No. | Contribution |
 |------|--------|--------------|
-| Sashwath Swaminathan | 2024A3PS0361H | ER/EER design, relational schema and table creation script (`02_create_tables.sql`) with all keys and constraints |
-| Srujana N S | 2024A1PS0874H | Sample data population (`03_sample_data.sql`) and the SQL query set (`04_queries.sql`) |
-| Anushka Sahoo | 2024A1PS0937H | Views (`05_views.sql`), booking-integrity trigger and test script (`06_booking_integrity.sql`) |
-| Vinny Polamarasetty | 2024A1PS0930H | Normalization/design justification and the Database Design Document |
-| Dhwaj Kishore | 2024A1PS1187H | Application Design (workflows, tech stack, architecture) and end-to-end testing / test report |
+| Sashwath Swaminathan | 2024A3PS0361H | **Mid-sem:** ER/EER design, relational schema and table creation script (`02_create_tables.sql`) with all keys and constraints<br>**Final:** booking procedures in `07_plsql.sql` (`book_seats`, `make_payment`, `cancel_booking`) and the indexes on foreign-key columns |
+| Srujana N S | 2024A1PS0874H | **Mid-sem:** sample data population (`03_sample_data.sql`) and the SQL query set (`04_queries.sql`)<br>**Final:** PL/SQL functions (`get_seat_price`, `get_avg_rating`, `seats_left`), upcoming-shows script (`08_upcoming_shows.sql`) and the Reports page queries (`app/backend/src/routes/reports.js`) |
+| Anushka Sahoo | 2024A1PS0937H | **Mid-sem:** views (`05_views.sql`), booking-integrity trigger and test script (`06_booking_integrity.sql`)<br>**Final:** `save_review` procedure, watchlist trigger, `print_user_activity` cursor report and the transaction demo script (`09_plsql_demo.sql`) |
+| Vinny Polamarasetty | 2024A1PS0930H | **Mid-sem:** normalization/design justification and the Database Design Document<br>**Final:** React frontend (`app/frontend`) and the final version of the Database Design Document |
+| Dhwaj Kishore | 2024A1PS1187H | **Mid-sem:** Application Design (workflows, tech stack, architecture) and end-to-end testing / test report<br>**Final:** Express API (`app/backend`: routes, transactions, Oracle error messages) and end-to-end testing of the web app |
 
 ---
 
@@ -27,7 +27,7 @@ Right now people use one app to log the films they like and a totally different 
 - [x] 37 SQL queries (joins, GROUP BY/HAVING, subqueries, EXISTS, double NOT EXISTS, set operators, CASE)
 - [x] 5 views and a trigger that checks a booked seat belongs to the show's screen
 - [x] Integrity test script: every invalid booking gets rejected with the right Oracle error
-- [x] Everything tested end-to-end on Oracle 21c XE ([test report](docs/MovieDB_Oracle_Test_Report.pdf))
+- [x] Scripts 02–06 tested end-to-end on Oracle 21c XE ([test report](docs/MovieDB_Oracle_Test_Report.pdf))
 - [x] PL/SQL: 3 functions, 5 procedures (`book_seats`, `make_payment`, `cancel_booking`, `save_review`, `print_user_activity`), a second trigger, 6 indexes
 - [x] Transaction demo script: COMMIT, ROLLBACK, savepoints, all-or-nothing booking
 - [x] Web app: Node.js + Express API (calls the PL/SQL procedures) and a React frontend
@@ -49,7 +49,7 @@ Right now people use one app to log the films they like and a totally different 
 
 | Document | What's in it |
 |----------|--------------|
-| [Database Design Document](docs/Database_Design_Document.pdf) | ER/EER diagram, relational schema, keys, integrity constraints, assumptions, normalization |
+| [Database Design Document](docs/Database_Design_Document.pdf) | ER/EER diagram, relational schema, keys, integrity constraints, assumptions, normalization, indexes and PL/SQL design (4 pages) |
 | [Application Design](docs/Application_Design.pdf) | workflows, tech stack, architecture, API endpoints (written before the app was built; the final endpoints are listed below) |
 | [Test Report](docs/MovieDB_Oracle_Test_Report.pdf) | output of a full run on Oracle 21c, each query checked against its expected answer |
 | [Design notes](01_design.md) | our full working notes (requirements, FDs, normalization walkthrough) |

@@ -21,9 +21,8 @@ story += [P("1. What our project is about", "h1"),
             "reviews, watchlists) and the <b>cinema side</b> (theatres, screens, seats, shows, bookings, payments)."),
           P("A big goal for us was to let the database itself enforce the important rules (like \"one seat can't be "
             "sold twice for the same show\") using constraints wherever possible, and only use a trigger when a "
-            "constraint just can't do it. Phase 1 is only the database (tables, constraints, sample data, queries, "
-            "views, a trigger). The web app comes in the next phase and is described in our separate Application "
-            "Design document."),
+            "constraint just can't do it. On top of this we wrote PL/SQL procedures (Section 8) and a web app that "
+            "calls them; the app never re-checks a rule, it just shows Oracle's error."),
           P("Two small naming changes from the suggested table list: <b>USER</b> became <b>APP_USER</b> because USER is a "
             "reserved word in Oracle, and <b>SHOW</b> became <b>MOVIE_SHOW</b> because SHOW is a SQL*Plus command and "
             "it was messing up our scripts.")]
@@ -38,7 +37,7 @@ story += bullets([
     "Each booking has at most one payment record. If a payment is retried we just update its status.",
     "Users can review any movie, even if they didn't book it through our system (same as Letterboxd).",
     "When a booking is cancelled the seats are released, but the booking row stays (status CANCELLED) so we keep the history.",
-    "No login/passwords, real payment gateway or seat-hold timers in Phase 1. Those are out of scope for now.",
+    "No login/passwords, real payment gateway or seat-hold timers. Payment is simulated, and in the app you pick which sample user you are acting as.",
 ])
 
 # entities ----------------------------------------------------------------
@@ -113,7 +112,7 @@ story += [P("<b>How we mapped things:</b> SCREEN and SEAT technically have compo
 # 5 -------------------------------------------------------------------------
 story += [P("6. Important Integrity Constraints", "h1"),
           P("Here are the main rules and what actually enforces each one. We tried to do as much as possible with "
-            "plain constraints. The only thing we needed a trigger for is rule 10.")]
+            "plain constraints. The only integrity rule that needed a trigger is rule 10.")]
 ic = [
     ["#", "Rule", "Enforced by"],
     ["1", "Username and email are unique for each user", "UNIQUE constraints"],
@@ -169,8 +168,36 @@ story += bullets([
     "screen+start time, etc.) are UNIQUE, so duplicates can't sneak in.",
 ])
 
+# 8 -------------------------------------------------------------------------
+story += [P("8. Indexes and PL/SQL Design", "h1"),
+          P("<b>Indexes.</b> Oracle automatically indexes every PRIMARY KEY and UNIQUE constraint, but not foreign keys. "
+            "We added six indexes on the foreign keys the app filters on: BOOKING(user_id), BOOKING(show_id), "
+            "MOVIE_SHOW(movie_id), REVIEW(movie_id), WATCHLIST(movie_id) and MOVIE_GENRE(genre_id).")]
+pl = [
+    ["Object", "What it does / why"],
+    ["get_seat_price, get_avg_rating, seats_left (functions)",
+     "Premium = base + Rs 100 written in one place; average rating and seats left computed on the fly instead of stored."],
+    ["book_seats (procedure)",
+     "Creates a PENDING booking and all its seats as one unit. If any seat fails, it rolls back to a savepoint, so it's all seats or none."],
+    ["make_payment (procedure)",
+     "MERGE into PAYMENT (one row per booking) and sets the booking to CONFIRMED. SELECT ... FOR UPDATE stops a booking being paid twice at once."],
+    ["cancel_booking (procedure)",
+     "Frees the seats, keeps the booking row as CANCELLED and marks the payment REFUNDED. Refused once the show has started."],
+    ["save_review (procedure)",
+     "MERGE = insert or update, so rule 2 (one review per user per movie) becomes \"edit your review\"."],
+    ["TRG_REVIEW_CLEARS_WATCHLIST (trigger)",
+     "When you review a movie, it's removed from your watchlist."],
+]
+story += [table(pl, [55 * mm, WIDTH - 55 * mm], raw=True), Spacer(1, 3)]
+story += bullets([
+    "<b>The procedures never COMMIT.</b> The caller decides, so booking + payment can be one transaction. The API commits only if "
+    "every statement in the request worked, and rolls back otherwise.",
+    "<b>No \"is the seat free?\" check before inserting.</b> Two users could both see a seat as free at the same moment. Instead we rely "
+    "on UNIQUE (show_id, seat_id): Oracle checks it at insert time, so the second booking waits for the first and then fails.",
+])
+
 doc = SimpleDocTemplate(str(OUT), pagesize=PAGE, leftMargin=MARGIN, rightMargin=MARGIN, topMargin=16 * mm,
-                        bottomMargin=17 * mm, title="Database Design Document", author="Sashwath Swaminathan, Srujana N S, Anushka Sahoo, Vinny Polamarasetty")
+                        bottomMargin=17 * mm, title="Database Design Document", author="Sashwath Swaminathan, Srujana N S, Anushka Sahoo, Vinny Polamarasetty, Dhwaj Kishore")
 doc.build(story, onFirstPage=page_number, onLaterPages=page_number)
 from pypdf import PdfReader
 print(OUT.name, "pages:", len(PdfReader(OUT).pages))

@@ -78,12 +78,15 @@ def page_number(c, d):
 
 
 MEMBERS = [("Sashwath Swaminathan", "2024A3PS0361H"), ("Srujana N S", "2024A1PS0874H"),
-           ("Anushka Sahoo", "2024A1PS0937H"), ("Vinny Polamarasetty", "2024A1PS0930H")]
+           ("Anushka Sahoo", "2024A1PS0937H"), ("Vinny Polamarasetty", "2024A1PS0930H"),
+           ("Dhwaj Kishore", "2024A1PS1187H")]
 
 
 def members_table():
-    """Small centred table of team members and ID numbers for the title block."""
-    rows = [["Name", "ID No.", "Name", "ID No."]]
-    for i in range(0, len(MEMBERS), 2):
-        rows.append([*MEMBERS[i], *MEMBERS[i + 1]])
-    return table(rows, [42 * mm, 30 * mm, 42 * mm, 30 * mm])
+    """Small centred table of team members and ID numbers for the title block (3 people per row)."""
+    per_row = 3
+    rows = [["Name", "ID No."] * per_row]
+    for i in range(0, len(MEMBERS), per_row):
+        group = MEMBERS[i:i + per_row] + [("", "")] * (per_row - len(MEMBERS[i:i + per_row]))
+        rows.append([cell for member in group for cell in member])
+    return table(rows, [33 * mm, 23.5 * mm] * per_row)
