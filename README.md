@@ -169,20 +169,18 @@ python report/build_report.py
 | GET | `/api/reports` | Reports | six project queries |
 | GET | `/api/users`, `/api/meta` | drop-downs | lookups |
 
-**Things worth showing in the demo:**
+## Demo
 
-- Open the same show in two browser windows as two different users and book the same seat. The second one gets "one of those seats was just booked by someone else" (ORA-00001 on `UQ_BSEAT_SHOW_SEAT`), and none of its seats are saved.
-- Review a movie that is on your watchlist: the trigger removes it from the watchlist.
-- In Admin, enter a 400-minute movie or schedule two shows on one screen at the same time: the error shown is the CHECK / UNIQUE constraint Oracle raised.
+- Book the same seat for the same show from two browser windows (pick a different user in each). The second booking fails with "One or more of these seats is already booked for this show." and none of its seats get saved.
+- Review a movie that's on your watchlist. It disappears from the watchlist (that's the trigger).
+- In Admin, try adding a 400 minute movie, or two shows on the same screen at the same time. Oracle rejects it and the app shows the error.
 
----
+## Design decisions
 
-## A few design decisions we'd point out in the viva
-
-- `USER` → `APP_USER` (reserved word in Oracle) and `SHOW` → `MOVIE_SHOW` (SQL*Plus command).
-- `BOOKING_SEAT` keeps a copy of `show_id`. That's the only way a plain `UNIQUE (show_id, seat_id)` can stop double booking, and a composite FK makes sure the copy always matches the booking. Because of this the table is 3NF but not BCNF, and that's on purpose.
-- No stored totals (screen capacity, booking total). They're calculated in views so they can never go out of date.
-- `price_paid` is stored per seat because it's the price **at the time of booking**, not a duplicate of the show price.
-- The procedures never COMMIT; the caller does. So booking + payment can be one transaction, and the API commits or rolls back the whole request.
-- `book_seats` doesn't check whether a seat is free before inserting. The UNIQUE constraint does that, and unlike a SELECT-then-INSERT, it's still correct when two people click "Book" at the same moment.
-- The API doesn't repeat any business rule. It translates Oracle's error into a message, so the database stays the single source of truth.
+- We renamed USER to APP_USER and SHOW to MOVIE_SHOW because USER is reserved in Oracle and SHOW clashes with a SQL*Plus command.
+- BOOKING_SEAT stores show_id even though BOOKING already has it. That lets UNIQUE (show_id, seat_id) block double booking, and a composite FK keeps it in sync with BOOKING. It makes the table 3NF instead of BCNF, which we were fine with.
+- We don't store totals like screen capacity or booking amount. The views calculate them.
+- price_paid is saved per seat because the show price can change later.
+- The procedures don't COMMIT. The backend commits once the whole request works, or rolls back.
+- book_seats doesn't check if a seat is free first. It just inserts and lets the UNIQUE constraint catch it, which also handles two people booking at the same time.
+- The backend doesn't re-check rules. It just shows the error Oracle gives back.
