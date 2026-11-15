@@ -195,6 +195,4 @@ python report/build_report.py
 - book_seats doesn't check if a seat is free first. It just inserts and lets the UNIQUE constraint catch it, which also handles two people booking at the same time.
 - The backend doesn't re-check rules. It just shows the error Oracle gives back.
 
-### Use of AI
 
-We used AI tools (Claude) during this project to help us.
