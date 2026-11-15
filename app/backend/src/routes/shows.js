@@ -1,4 +1,3 @@
-// W5 find shows, W6 seat map.
 import { Router } from 'express';
 import { query } from '../db.js';
 import { ApiError } from '../errors.js';
@@ -6,9 +5,6 @@ import { ah, id, opt, DT } from '../util.js';
 
 const router = Router();
 
-// GET /api/shows?city=&date=YYYY-MM-DD&movieId=
-// Upcoming shows from the THEATRE_SHOW_SCHEDULE view, with free seats
-// from the seats_left() PL/SQL function.
 router.get('/', ah(async (req, res) => {
   const movieId = req.query.movieId ? id(req.query.movieId, 'movieId') : null;
   res.json(await query(
@@ -25,8 +21,6 @@ router.get('/', ah(async (req, res) => {
     { city: opt(req.query.city), showDate: opt(req.query.date), movieId }));
 }));
 
-// GET /api/shows/:id  -> show details + every seat with AVAILABLE/BOOKED
-// (SHOW_SEAT_STATUS view; prices come from the view's CASE = BR15)
 router.get('/:id', ah(async (req, res) => {
   const showId = id(req.params.id, 'show id');
   const [show] = await query(

@@ -1,4 +1,3 @@
-"""Builds docs/Database_Design_Document.pdf (max 5 pages)."""
 import pathlib
 from reportlab.platypus import SimpleDocTemplate, Spacer, KeepTogether, PageBreak
 from reportlab.lib.units import mm
@@ -12,7 +11,6 @@ story += [P("Movie Discovery, Review &amp; Cinema Booking Database", "title"), S
           P("Database Design Document", "subtitle"), Spacer(1, 2),
           Spacer(1, 4), members_table(), Spacer(1, 4), P("Tech: Oracle 21c XE, SQL / PL/SQL, SQL Developer · Node.js + Express · React", "meta"), Spacer(1, 6)]
 
-# 1 -------------------------------------------------------------------------
 story += [P("1. What our project is about", "h1"),
           P("Right now if you're into movies you basically use two different apps: something like Letterboxd to "
             "rate and review films, and something like BookMyShow to actually book tickets. So the info about what "
@@ -27,7 +25,6 @@ story += [P("1. What our project is about", "h1"),
             "reserved word in Oracle, and <b>SHOW</b> became <b>MOVIE_SHOW</b> because SHOW is a SQL*Plus command and "
             "it was messing up our scripts.")]
 
-# 2 -------------------------------------------------------------------------
 story += [P("2. Assumptions", "h1")]
 story += bullets([
     "All theatres are in India, prices are in rupees and times are local. We use Oracle DATE, which stores both date and time.",
@@ -40,7 +37,6 @@ story += bullets([
     "No login/passwords, real payment gateway or seat-hold timers. Payment is simulated, and in the app you pick which sample user you are acting as.",
 ])
 
-# entities ----------------------------------------------------------------
 story += [P("3. Entities at a glance", "h1")]
 ents = [["Entity", "What it stores", "Type"],
         ["APP_USER", "people who rate, review, keep watchlists and book tickets", "strong"],
@@ -55,7 +51,6 @@ ents = [["Entity", "What it stores", "Type"],
         ["REVIEW, WATCHLIST, MOVIE_GENRE, MOVIE_ACTOR, BOOKING_SEAT", "these come from the M:N relationships (see Section 5)", "associative"]]
 story += [table(ents, [40 * mm, WIDTH - 82 * mm, 42 * mm])]
 
-# 3 -------------------------------------------------------------------------
 story += [PageBreak(), P("4. ER / EER Diagram", "h1"),
           P("We drew the diagram in Chen notation. To keep it readable, only the key attribute is shown inside each "
             "entity; all the other attributes are listed in the relational schema in Section 5."),
@@ -76,7 +71,6 @@ story += bullets([
     "has its own attributes and lifecycle (PENDING, SUCCESS, FAILED, REFUNDED).",
 ])
 
-# 4 -------------------------------------------------------------------------
 story += [P("5. Relational Schema (with primary and foreign keys)", "h1"),
           P("Notation: <u>underlined</u> = primary key, <i>italic</i> = foreign key. We ended up with 15 tables in total."),
           ]
@@ -109,7 +103,6 @@ story += [P("<b>How we mapped things:</b> SCREEN and SEAT technically have compo
             "(restrict), because you shouldn't be able to delete a user or a movie that has bookings and payments. That "
             "would wipe out financial history.")]
 
-# 5 -------------------------------------------------------------------------
 story += [P("6. Important Integrity Constraints", "h1"),
           P("Here are the main rules and what actually enforces each one. We tried to do as much as possible with "
             "plain constraints. The only integrity rule that needed a trigger is rule 10.")]
@@ -136,7 +129,6 @@ story += [table(ic, [7 * mm, 82 * mm, WIDTH - 89 * mm], raw=True), Spacer(1, 3),
             "Our trigger only reads MOVIE_SHOW and SEAT, so there's no mutating-table problem. We tested every rule in this "
             "table in 06_booking_integrity.sql, and each invalid insert fails with the expected Oracle error.")]
 
-# 6 -------------------------------------------------------------------------
 story += [P("7. Normalization and Design Justification", "h1"),
           P("<b>Starting point.</b> Our first idea was a single \"ticket\" table with everything on it: booking_id, username, "
             "email, movie title, genres, theatre, city, screen, show time, seats, price, status. It had all the classic "
@@ -168,7 +160,6 @@ story += bullets([
     "screen+start time, etc.) are UNIQUE, so duplicates can't sneak in.",
 ])
 
-# 8 -------------------------------------------------------------------------
 story += [P("8. Indexes and PL/SQL Design", "h1"),
           P("<b>Indexes.</b> Oracle automatically indexes every PRIMARY KEY and UNIQUE constraint, but not foreign keys. "
             "We added six indexes on the foreign keys the app filters on: BOOKING(user_id), BOOKING(show_id), "
@@ -196,7 +187,6 @@ story += bullets([
     "on UNIQUE (show_id, seat_id): Oracle checks it at insert time, so the second booking waits for the first and then fails.",
 ])
 
-# 9 -------------------------------------------------------------------------
 story += [P("9. Workflows, Architecture and UI", "h1"),
           P("<b>Main workflows.</b> Each one is a page in the web app and is backed by the database objects listed.")]
 wf = [

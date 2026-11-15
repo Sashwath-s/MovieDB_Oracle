@@ -1,5 +1,3 @@
-"""Plain 'Word document saved as PDF' look for the submission docs:
-Calibri text, simple bold headings, black grid tables."""
 from xml.sax.saxutils import escape
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
@@ -18,7 +16,7 @@ pdfmetrics.registerFontFamily("Cal", normal="Cal", bold="Cal-Bold", italic="Cal-
 pdfmetrics.registerFontFamily("Mono", normal="Mono", bold="Mono-Bold", italic="Mono", boldItalic="Mono-Bold")
 
 BLACK = colors.black
-HEADER_FILL = colors.HexColor("#d9e2f3")   # Word's default light-blue table header
+HEADER_FILL = colors.HexColor("#d9e2f3")
 
 PAGE = A4
 MARGIN = 20 * mm
@@ -41,17 +39,13 @@ S = {
     "code": ParagraphStyle("code", fontName="Mono", fontSize=8, leading=9.8),
 }
 
-
 def P(text, style="body", **kw):
     return Paragraph(text, S[style], **kw)
-
 
 def bullets(items, style="bullet"):
     return [Paragraph(t, S[style], bulletText="\u2022") for t in items]
 
-
 def table(rows, widths, mono_cols=(), raw=False):
-    """Plain Word-style table: thin black grid, shaded bold header row."""
     data = []
     for i, r in enumerate(rows):
         line = []
@@ -69,21 +63,17 @@ def table(rows, widths, mono_cols=(), raw=False):
         ("LEFTPADDING", (0, 0), (-1, -1), 3.5), ("RIGHTPADDING", (0, 0), (-1, -1), 3.5)]))
     return t
 
-
 def page_number(c, d):
     c.saveState()
     c.setFont("Cal", 9)
     c.drawCentredString(PAGE[0] / 2, 10 * mm, f"Page {d.page}")
     c.restoreState()
 
-
 MEMBERS = [("Sashwath Swaminathan", "2024A3PS0361H"), ("Vinny Polamarasetty", "2024A1PS0930H"),
            ("Srujana N S", "2024A1PS0874H"), ("Anushka Sahoo", "2024A1PS0937H"),
            ("Dhwaj Kishore", "2024A1PS1187H")]
 
-
 def members_table():
-    """Small centred table of team members and ID numbers for the title block (3 people per row)."""
     per_row = 3
     rows = [["Name", "ID No."] * per_row]
     for i in range(0, len(MEMBERS), per_row):

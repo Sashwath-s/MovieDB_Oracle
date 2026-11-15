@@ -1,4 +1,3 @@
-// W1: browse and search movies (MOVIE_DETAILS + MOVIE_RATING_SUMMARY views)
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';

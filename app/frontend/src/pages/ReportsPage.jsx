@@ -1,4 +1,3 @@
-// Reports: a few project queries run live on Oracle, with their SQL shown.
 import { useState } from 'react';
 import { api } from '../api.js';
 import { Alert, Loading, useLoad } from '../components/ui.jsx';

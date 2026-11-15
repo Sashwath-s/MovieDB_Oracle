@@ -67,7 +67,7 @@ MovieDB_Oracle/
 ├── 01_design.md                 design notes (requirements, ER, schema, normalization)
 ├── 02_create_tables.sql         drops + creates all 15 tables, constraints, sequences
 ├── 03_sample_data.sql           sample data (+ a PL/SQL loop that generates the seats)
-├── 04_queries.sql               37 queries, each with the expected result in a comment
+├── 04_queries.sql               37 queries (joins, GROUP BY/HAVING, subqueries, EXISTS, set operators, CASE)
 ├── 05_views.sql                 5 views + demo queries
 ├── 06_booking_integrity.sql     trigger + test script for invalid bookings (ends in ROLLBACK)
 ├── 07_plsql.sql                 indexes, functions, procedures, watchlist trigger
@@ -107,7 +107,7 @@ GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE SEQUENCE,
 | 5 | `06_booking_integrity.sql` | creates the trigger and runs the integrity tests (needs the views from step 4) |
 | 6 | `07_plsql.sql` | indexes, functions, procedures and the second trigger |
 | 7 | `08_upcoming_shows.sql` | adds shows for the next 4 days so there is something to book (run it again on demo day) |
-| 8 | `09_plsql_demo.sql` | PL/SQL and transaction demo, every step has its expected output |
+| 8 | `09_plsql_demo.sql` | PL/SQL and transaction demo: bookings, every business-rule error, COMMIT / ROLLBACK, cancellation |
 
 - **SQL Developer:** open each file and press **Run Script (F5)**, not Run Statement (Ctrl+Enter). Keep auto-commit off, otherwise the savepoint demo in 06 won't behave as described.
 - **SQL*Plus:** run everything in one go:
@@ -156,7 +156,7 @@ python report/build_report.py
 
 - **Browse movies:** see each movie's genres, cast and average rating (`MOVIE_DETAILS`, `MOVIE_RATING_SUMMARY` views).
 - **Rate / review:** one review per user per movie, rating 0.5 to 5 in half stars (PK + CHECK).
-- **Watchlist:** add movies to watchlist, find watchlisted movies that are currently showing (Q37).
+- **Watchlist:** add movies to watchlist, find watchlisted movies that are currently showing (INTERSECT query in `04_queries.sql`).
 - **Find shows:** what's playing where and when (`THEATRE_SHOW_SCHEDULE` view).
 - **Book seats:** seat map per show (`SHOW_SEAT_STATUS` view). Double booking is blocked by `UNIQUE (show_id, seat_id)`, and the trigger stops seats from the wrong screen.
 - **Payment:** one payment per booking; a SUCCESS payment must have a timestamp.
@@ -201,4 +201,4 @@ We used AI tools (Claude) during this project, following the course rule that AI
 
 - What AI helped with: drafting the SQL and PL/SQL scripts, the backend and frontend code, and parts of the documentation (README, design document), and explaining concepts and errors while we worked.
 - What we did ourselves: decided the scope and features, reviewed every file, ran all scripts on Oracle 21c XE and tested the web app end to end, fixed the problems we found (setup, connection and data issues), and split the parts so each member owns and can explain one feature (see the table above).
-- How we checked it: we ran every script and compared the output with the expected results written in the scripts, tested each workflow in the app, and checked the design decisions (keys, normalization, constraints) against our course material.
+- How we checked it: we ran every script and checked the output of each one, tested each workflow in the app, and checked the design decisions (keys, normalization, constraints) against our course material.

@@ -1,4 +1,3 @@
-// W9: admin — add a movie (with genres, one transaction) and schedule a show.
 import { useState } from 'react';
 import { api } from '../api.js';
 import { Alert, useLoad } from '../components/ui.jsx';
@@ -18,7 +17,6 @@ function useSubmit(onDone) {
       setMsg({ kind: 'success', text: success(result) });
       onDone?.();
     } catch (err) {
-      // the message comes from the Oracle constraint that failed (errors.js)
       setMsg({ kind: 'error', text: err.message });
     } finally {
       setBusy(false);

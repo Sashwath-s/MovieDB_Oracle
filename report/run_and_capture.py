@@ -1,9 +1,3 @@
-"""Run every project script in Oracle (one SQL*Plus session per file) and capture
-each statement's outcome as structured JSON for the PDF report.
-
-Each statement is preceded by a PROMPT marker so the output can be split back
-into per-statement results. Query output uses SQL*Plus CSV markup.
-"""
 import csv, io, json, os, re, subprocess, datetime, pathlib
 
 PROJECT = pathlib.Path(__file__).resolve().parent.parent
@@ -16,7 +10,6 @@ FILES = ["02_create_tables.sql", "03_sample_data.sql", "04_queries.sql",
          "08_upcoming_shows.sql", "09_plsql_demo.sql"]
 MARK = "@@STMT@@"
 
-
 def creds():
     d = {}
     for line in (PROJECT / "oracle_credentials.txt").read_text(encoding="utf-8-sig").splitlines():
@@ -25,9 +18,7 @@ def creds():
             d[k.strip()] = v.strip()
     return d
 
-
 def split_statements(text):
-    """Split a script into (preceding_comments, statement_text) pairs."""
     stmts, comments, buf, plsql = [], [], [], False
     for line in text.splitlines():
         s = line.strip()
@@ -43,7 +34,6 @@ def split_statements(text):
             stmts.append((comments, "\n".join(buf)))
             comments, buf = [], []
     return stmts
-
 
 def run_file(name, cred):
     stmts = split_statements((PROJECT / name).read_text(encoding="utf-8"))
@@ -74,11 +64,9 @@ def run_file(name, cred):
         results.append(dict(comments=comments, sql=sql, **parse_output(raw)))
     return results
 
-
 FEEDBACK = re.compile(r"^(\d+ rows? (selected|created|updated|deleted)\.|no rows selected|"
                       r"(Table|View|Sequence|Trigger|Index|Function|Procedure) (created|dropped)\.|PL/SQL procedure successfully completed\.|"
                       r"Commit complete\.|Rollback complete\.|Savepoint created\.|Session altered\.)$")
-
 
 def parse_output(raw):
     lines = [l.rstrip() for l in raw.splitlines()]
@@ -92,7 +80,6 @@ def parse_output(raw):
         rows = list(csv.reader(io.StringIO("\n".join(data))))
     return dict(errors=errors, feedback=feedback, rows=rows)
 
-
 def main():
     cred = creds()
     started = datetime.datetime.now()
@@ -102,7 +89,6 @@ def main():
         n = len(report["files"][f])
         e = sum(1 for r in report["files"][f] if r["errors"])
         print(f"{f}: {n} statements, {e} with errors")
-    # Oracle version banner
     env = dict(os.environ, ORACLE_HOME=ORACLE_HOME)
     p = subprocess.run([SQLPLUS, "-S", "-L", "/nolog"], capture_output=True, text=True, env=env,
                        input=f'CONNECT {cred["APP_USER"]}/"{cred["APP_PASSWORD"]}"@{HOST}\n'
@@ -111,7 +97,6 @@ def main():
     report["finished"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     OUT.write_text(json.dumps(report, indent=1), encoding="utf-8")
     print("version:", report["version"])
-
 
 if __name__ == "__main__":
     main()

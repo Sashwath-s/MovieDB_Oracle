@@ -1,7 +1,3 @@
-// There is no login in this project (out of scope). Instead the header has a
-// drop-down to pick which sample user you are "acting as". The chosen
-// user_id is shared with every page through this React context and kept in
-// localStorage so it survives a page refresh.
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from './api.js';
 
@@ -20,7 +16,6 @@ export function UserProvider({ children }) {
     api.users()
       .then((list) => {
         setUsers(list);
-        // default to the first user if nothing (or a deleted user) was saved
         setUserIdState((cur) => (list.some((u) => u.user_id === cur) ? cur : list[0]?.user_id ?? null));
       })
       .catch((e) => setError(e.message));
@@ -28,7 +23,7 @@ export function UserProvider({ children }) {
 
   function setUserId(id) {
     setUserIdState(id);
-    try { localStorage.setItem('moviedb.userId', String(id)); } catch { /* ignore */ }
+    try { localStorage.setItem('moviedb.userId', String(id)); } catch { }
   }
 
   const user = users.find((u) => u.user_id === userId) || null;

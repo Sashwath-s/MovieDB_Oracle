@@ -1,5 +1,3 @@
-// Reports page: a few of the project's SQL queries run live, with the
-// SQL text sent along so it can be shown in the viva.
 import { Router } from 'express';
 import { query } from '../db.js';
 import { ah } from '../util.js';
@@ -81,7 +79,6 @@ WHERE  u.user_id IN (SELECT user_id FROM review
   },
 ];
 
-// GET /api/reports  -> every report with its rows
 router.get('/', ah(async (req, res) => {
   const results = await Promise.all(REPORTS.map(async (r) => ({ ...r, rows: await query(r.sql) })));
   res.json(results);

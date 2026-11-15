@@ -1,4 +1,3 @@
-// W5: find shows by city and date (THEATRE_SHOW_SCHEDULE view + seats_left function)
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
@@ -12,7 +11,6 @@ export default function ShowsPage() {
   const meta = useLoad(() => api.meta(), []);
   const shows = useLoad(() => api.shows({ city, date, movieId }), [city, date, movieId]);
 
-  // group by theatre: { "Cineplex Central": { city, movies: { title: [shows] } } }
   const theatres = {};
   for (const s of shows.data || []) {
     const t = (theatres[s.theatre_name] ||= { city: s.city, movies: {} });

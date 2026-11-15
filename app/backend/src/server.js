@@ -1,4 +1,3 @@
-// Entry point: npm start  ->  http://localhost:4000
 import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
@@ -18,7 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', metaRoutes);               // /api/users, /api/meta
+app.use('/api', metaRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/shows', showRoutes);
@@ -28,16 +27,12 @@ app.use('/api/reports', reportRoutes);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'No such API route.' }));
 
-// If the frontend has been built (npm run build in app/frontend), serve it
-// from here too, so the whole app runs on one port for the demo.
 const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
 if (fs.existsSync(dist)) {
   app.use(express.static(dist));
   app.get('*', (req, res) => res.sendFile(path.join(dist, 'index.html')));
 }
 
-// Every error ends up here and is sent as { error: "message" }
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const { status, message } = toHttpError(err);
   res.status(status).json({ error: message });

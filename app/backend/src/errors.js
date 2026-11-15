@@ -1,11 +1,3 @@
-// Turns Oracle errors into short messages for the user.
-//
-// The important rules live in the database (constraints, trigger,
-// procedures). The API does not repeat them; it only translates the
-// error Oracle raises into something readable.
-
-// ORA-00001 (unique constraint) and ORA-02290 (check constraint) name the
-// constraint that failed, e.g. "(MOVIEDB.UQ_BSEAT_SHOW_SEAT)".
 const CONSTRAINT_MESSAGES = {
   UQ_BSEAT_SHOW_SEAT: 'Sorry, one of those seats was just booked by someone else.',
   PK_BOOKING_SEAT: 'The same seat was selected twice.',
@@ -33,8 +25,6 @@ export function toHttpError(err) {
   const num = err.errorNum;
   const firstLine = String(err.message || '').split('\n')[0];
 
-  // Our own RAISE_APPLICATION_ERROR codes (-20000 .. -20999): the message
-  // was written for people already, just strip the "ORA-20xxx: " prefix.
   if (num >= 20000 && num <= 20999) {
     return { status: 409, message: firstLine.replace(/^ORA-\d+:\s*/, '') };
   }

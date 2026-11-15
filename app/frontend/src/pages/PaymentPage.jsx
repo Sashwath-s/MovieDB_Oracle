@@ -1,4 +1,3 @@
-// W7: simulated payment (make_payment procedure: PAYMENT row + booking CONFIRMED)
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api.js';

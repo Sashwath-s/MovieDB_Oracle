@@ -1,8 +1,5 @@
-// Small shared pieces used by several pages.
 import { useCallback, useEffect, useState } from 'react';
 
-// Loads data when the page opens (and again when `deps` change).
-// Returns { data, error, loading, reload }.
 export function useLoad(loader, deps) {
   const [state, setState] = useState({ data: null, error: null, loading: true });
 
@@ -11,7 +8,6 @@ export function useLoad(loader, deps) {
     return loader()
       .then((data) => setState({ data, error: null, loading: false }))
       .catch((e) => setState({ data: null, error: e.message, loading: false }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => { reload(); }, [reload]);
@@ -32,7 +28,6 @@ export function Loading() {
   return <p className="py-10 text-center text-sm text-gray-500">Loading…</p>;
 }
 
-// Shows a rating like 4.5 as stars: ★★★★½
 export function Stars({ value, className = '' }) {
   if (value === null || value === undefined) return <span className="text-sm text-gray-500">not rated</span>;
   const full = Math.floor(value);
@@ -45,7 +40,6 @@ export function Stars({ value, className = '' }) {
   );
 }
 
-// Coloured badge for booking / payment status
 export function StatusBadge({ status }) {
   if (!status) return <span className="chip">no payment</span>;
   const colour = {

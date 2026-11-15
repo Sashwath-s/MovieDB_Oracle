@@ -1,5 +1,3 @@
-// The API sends dates as plain "2026-11-08T18:30" strings (formatted in SQL),
-// so we only reformat the text here and never convert time zones.
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 

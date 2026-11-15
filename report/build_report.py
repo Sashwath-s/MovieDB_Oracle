@@ -1,4 +1,3 @@
-"""Check captured Oracle results against the expected answers and build the PDF report."""
 import json, re, pathlib
 from xml.sax.saxutils import escape
 from reportlab.lib import colors
@@ -37,15 +36,12 @@ S = {
                            spaceBefore=2, spaceAfter=6),
 }
 
-
 def P(text, style="body"):
     return Paragraph(text, S[style])
-
 
 def verdict(ok):
     c = "#1a7f37" if ok else "#c62828"
     return f'<font color="{c}"><b>{"PASS" if ok else "FAIL"}</b></font>'
-
 
 def grid(rows, widths=None, header=True, max_rows=40):
     body = rows[: max_rows + (1 if header else 0)]
@@ -60,18 +56,12 @@ def grid(rows, widths=None, header=True, max_rows=40):
     t.setStyle(TableStyle(st))
     return t
 
-
 def col(rows, i=0):
     return [r[i] for r in rows[1:]]
-
 
 def pairs(rows):
     return {(r[0], r[1]) for r in rows[1:]}
 
-
-# ---------------------------------------------------------------- query checks
-# Each check returns True/False against the "Expected:" comment in 04_queries.sql
-# (or, for queries without one, against the independently computed answer).
 CHECKS = {
     2: lambda r: set(col(r)) == {"Baahubali 2: The Conclusion", "RRR"},
     6: lambda r: ("Eega", "0") in pairs(r) and len(r) - 1 == 12,
@@ -104,7 +94,6 @@ CHECKS = {
     36: lambda r: col(r) == ["8"],
     37: lambda r: col(r) == ["1", "2", "4", "6", "10", "11", "12"],
 }
-# Row counts from an independent re-implementation of every query (SQLite)
 INDEPENDENT_ROWS = {1: 12, 2: 2, 3: 12, 4: 4, 5: 26, 6: 12, 7: 9, 8: 1, 9: 12, 10: 3, 11: 6, 12: 8, 13: 4,
                     14: 4, 15: 1, 16: 11, 17: 2, 18: 2, 19: 5, 20: 4, 21: 5, 22: 6, 23: 10, 24: 3, 25: 7,
                     26: 1, 27: 5, 28: 6, 29: 3, 30: 1, 31: 12, 32: 12, 33: 4, 34: 6, 35: 1, 36: 1, 37: 7}
@@ -114,28 +103,22 @@ NOTES = {
     29: "Relational division: correct users returned.",
 }
 
-
 def query_meta(comments):
     text = " ".join(comments)
     m = re.search(r"Q(\d+)\.\s*\[([^\]]+)\]\s*(.*?)(?=Expected:|Note|Caution|Read it as|\(|$)", text)
     exp = re.search(r"Expected:\s*(.*?)(?=Note |Caution|$)", text)
     return int(m.group(1)), m.group(2), m.group(3).strip(), (exp.group(1).strip() if exp else None)
 
-
 def clean_sql(sql):
     return "\n".join(l for l in sql.splitlines() if not l.strip().startswith("--")).strip()
 
-
-# ---------------------------------------------------------------- build story
 story, summary = [], []
 
-# 02 -----------------------------------------------------------------------
 s02 = R["files"]["02_create_tables.sql"]
 tables = col(s02[-1]["rows"]) if s02[-1]["rows"] else []
 ok02 = all(not s["errors"] for s in s02) and len(tables) == 15
 summary.append(("02_create_tables.sql", f"{len(s02)} statements", f"15 tables + 2 sequences created", ok02))
 
-# 03 -----------------------------------------------------------------------
 s03 = R["files"]["03_sample_data.sql"]
 EXPECTED_COUNTS = dict(APP_USER=8, MOVIE=12, GENRE=9, MOVIE_GENRE=28, ACTOR=14, MOVIE_ACTOR=19, REVIEW=26,
                        WATCHLIST=15, THEATRE=4, SCREEN=7, SEAT=84, MOVIE_SHOW=12, BOOKING=12,
@@ -150,7 +133,6 @@ for t, e in EXPECTED_COUNTS.items():
 inserts = sum(1 for s in s03 if "1 row created." in s["feedback"])
 summary.append(("03_sample_data.sql", f"{len(s03)} statements", f"{inserts} INSERTs + 84 seats via PL/SQL; counts match", ok03))
 
-# 04 -----------------------------------------------------------------------
 s04 = R["files"]["04_queries.sql"]
 qresults = []
 for s in s04:
@@ -169,7 +151,6 @@ q_val = sum(1 for q in qresults if q["ok_val"] is not None)
 summary.append(("04_queries.sql", f"{len(qresults)} queries", f"{q_pass}/{len(qresults)} correct "
                 f"({q_val} value-checked, all row counts cross-checked)", q_pass == len(qresults)))
 
-# 05 -----------------------------------------------------------------------
 s05 = R["files"]["05_views.sql"]
 views_created = sum(1 for s in s05 if "View created." in s["feedback"])
 demos = [s for s in s05 if s["rows"]]
@@ -187,7 +168,6 @@ for (label, chk), s in zip(V_CHECKS, demos):
 ok05 = views_created == 5 and all(v[2] for v in vres) and all(not s["errors"] for s in s05)
 summary.append(("05_views.sql", f"5 views + {len(demos)} demo queries", "all views created; demo output correct", ok05))
 
-# 06 -----------------------------------------------------------------------
 s06 = R["files"]["06_booking_integrity.sql"]
 SELECT_EXPECT = {"A1": "A1 BOOKED", "PENDING": "booking 900 still PENDING", "PAYMENTS_FOR_900": "0", "BOOKING_900_ROWS": "0"}
 trows = [["#", "Statement", "Expected", "Actual (Oracle)", "Result"]]
@@ -226,7 +206,6 @@ summary.append(("06_booking_integrity.sql", f"{len(s06)} statements",
 
 all_ok = all(x[3] for x in summary)
 
-# ---------------------------------------------------------------- PDF content
 story.append(P("Movie Discovery, Review &amp; Cinema Booking Database", "title"))
 story.append(P(f"Oracle test report - full run of all project scripts &nbsp;|&nbsp; {R['started']}", "sub"))
 env = [["Database", R["version"]],
@@ -322,7 +301,6 @@ story.append(P("From the MovieDB_Oracle folder: <font face='Mono'>python report\
                "<font face='Mono'>python report\\build_report.py</font>. Or, in SQL Developer, connect to "
                "XEPDB1 as MOVIEDB (see oracle_credentials.txt) and run 02 to 06 in order with Run Script (F5)."))
 
-
 def on_page(c, d):
     c.saveState()
     c.setFont("Body", 7.5)
@@ -330,7 +308,6 @@ def on_page(c, d):
     c.drawString(15 * mm, 9 * mm, "MovieDB - Oracle test report")
     c.drawRightString(A4[0] - 15 * mm, 9 * mm, f"Page {d.page}")
     c.restoreState()
-
 
 doc = SimpleDocTemplate(str(PDF), pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm,
                         topMargin=14 * mm, bottomMargin=15 * mm, title="MovieDB Oracle Test Report")

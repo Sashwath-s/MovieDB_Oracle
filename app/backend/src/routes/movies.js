@@ -1,4 +1,3 @@
-// W1 browse/search movies, W2 movie page, W3 rate/review a movie.
 import { Router } from 'express';
 import { query, transaction } from '../db.js';
 import { ApiError } from '../errors.js';
@@ -6,15 +5,12 @@ import { ah, id, opt, num, DT } from '../util.js';
 
 const router = Router();
 
-// Only these ORDER BY clauses are allowed (the user picks a key, never SQL text).
 const SORTS = {
   rating: 's.avg_rating DESC NULLS LAST, d.title',
   newest: 'd.release_date DESC',
   title: 'd.title',
 };
 
-// GET /api/movies?q=&genre=&lang=&sort=
-// Reads the MOVIE_DETAILS and MOVIE_RATING_SUMMARY views from 05_views.sql.
 router.get('/', ah(async (req, res) => {
   const orderBy = SORTS[req.query.sort] || SORTS.rating;
   const rows = await query(
@@ -39,7 +35,6 @@ router.get('/', ah(async (req, res) => {
   res.json(rows);
 }));
 
-// GET /api/movies/:id?userId=   -> details, cast, reviews, upcoming shows
 router.get('/:id', ah(async (req, res) => {
   const movieId = id(req.params.id, 'movie id');
   const userId = req.query.userId ? id(req.query.userId, 'userId') : null;
@@ -79,10 +74,6 @@ router.get('/:id', ah(async (req, res) => {
   res.json({ ...movie, cast, reviews, shows, in_watchlist: inWatchlist.length > 0 });
 }));
 
-// PUT /api/movies/:id/review  { userId, rating, text }
-// Calls the save_review procedure (MERGE: insert or update). The rating is
-// validated by the CHECK constraint, not here. A new review also fires
-// trg_review_clears_watchlist.
 router.put('/:id/review', ah(async (req, res) => {
   const movieId = id(req.params.id, 'movie id');
   const userId = id(req.body.userId, 'userId');
@@ -95,7 +86,6 @@ router.put('/:id/review', ah(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// DELETE /api/movies/:id/review?userId=
 router.delete('/:id/review', ah(async (req, res) => {
   const movieId = id(req.params.id, 'movie id');
   const userId = id(req.query.userId, 'userId');

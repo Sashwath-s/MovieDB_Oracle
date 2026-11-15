@@ -445,7 +445,7 @@ The sample shows are fixed October 2026 dates, so once they are in the past noth
 
 ### 12. PL/SQL + transaction demo (`09_plsql_demo.sql`)
 
-Eight parts, each with its expected output: functions, a full booking as one transaction, atomicity (all seats or none), every business-rule error, COMMIT vs ROLLBACK (including a failed payment that rolls back only to its own savepoint), the MERGE + trigger behaviour, the cursor report, and a cancellation. It leaves the data as it found it.
+Eight parts: functions, a full booking as one transaction, atomicity (all seats or none), every business-rule error, COMMIT vs ROLLBACK (including a failed payment that rolls back only to its own savepoint), the MERGE + trigger behaviour, the cursor report, and a cancellation. It leaves the data as it found it.
 
 ### 13. Application (`app/`)
 
@@ -476,7 +476,7 @@ Three tiers: React frontend → Express API → Oracle.
 |------|----------|
 | `02_create_tables.sql` | Step 5: drops (safe to re-run), tables in dependency order, sequences |
 | `03_sample_data.sql` | Step 6: sample data + COMMIT |
-| `04_queries.sql` | Step 7: 37 queries grouped by concept, with expected results |
+| `04_queries.sql` | Step 7: 37 queries grouped by concept |
 | `05_views.sql` | Step 8: five views with demo queries |
 | `06_booking_integrity.sql` | Step 9: seat/screen trigger + a test script showing each invalid booking being rejected, ending in ROLLBACK |
 | `07_plsql.sql` | Step 10: indexes, 3 functions, 5 procedures, watchlist trigger |

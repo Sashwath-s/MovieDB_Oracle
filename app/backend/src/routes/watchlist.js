@@ -1,4 +1,3 @@
-// W4 watchlist.
 import { Router } from 'express';
 import { query, transaction } from '../db.js';
 import { ApiError } from '../errors.js';
@@ -6,8 +5,6 @@ import { ah, id } from '../util.js';
 
 const router = Router();
 
-// GET /api/watchlist?userId=
-// now_showing = 1 when the movie has an upcoming show (the idea of Q37).
 router.get('/', ah(async (req, res) => {
   const userId = id(req.query.userId, 'userId');
   res.json(await query(
@@ -25,7 +22,6 @@ router.get('/', ah(async (req, res) => {
      ORDER  BY now_showing DESC, w.added_on DESC`, { userId }));
 }));
 
-// POST /api/watchlist  { userId, movieId }   (PK stops duplicates)
 router.post('/', ah(async (req, res) => {
   const userId = id(req.body.userId, 'userId');
   const movieId = id(req.body.movieId, 'movieId');
@@ -35,7 +31,6 @@ router.post('/', ah(async (req, res) => {
   res.status(201).json({ ok: true });
 }));
 
-// DELETE /api/watchlist/:movieId?userId=
 router.delete('/:movieId', ah(async (req, res) => {
   const userId = id(req.query.userId, 'userId');
   const movieId = id(req.params.movieId, 'movieId');

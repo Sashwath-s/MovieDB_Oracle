@@ -1,13 +1,9 @@
-// Lookup data for drop-downs: users (for the "acting as" picker), genres,
-// languages, cities, screens and upcoming show dates.
 import { Router } from 'express';
 import { query } from '../db.js';
 import { ah } from '../util.js';
 
 const router = Router();
 
-// There is no login in this project (out of scope). The frontend lets you
-// pick which sample user you are "acting as".
 router.get('/users', ah(async (req, res) => {
   res.json(await query(
     `SELECT user_id, username, full_name, city

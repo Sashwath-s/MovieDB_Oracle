@@ -1,13 +1,3 @@
--- =====================================================================
--- STEP 5 : TABLE CREATION
--- Movie Discovery, Review & Cinema Booking Database (Oracle)
--- Run in SQL Developer with "Run Script" (F5).
--- =====================================================================
-
--- ---------------------------------------------------------------------
--- 0. Clean up (safe to re-run). Children are dropped before parents.
---    ORA-00942 (table does not exist) is ignored on the first run.
--- ---------------------------------------------------------------------
 BEGIN
   FOR t IN (SELECT column_value AS tname
               FROM TABLE(sys.odcivarchar2list(
@@ -33,10 +23,6 @@ BEGIN
   END LOOP;
 END;
 /
-
--- ---------------------------------------------------------------------
--- 1. Independent (parent) tables
--- ---------------------------------------------------------------------
 
 CREATE TABLE app_user (
   user_id        NUMBER(6),
@@ -91,10 +77,6 @@ CREATE TABLE theatre (
   CONSTRAINT uq_theatre_name_city  UNIQUE (theatre_name, city)
 );
 
--- ---------------------------------------------------------------------
--- 2. Associative tables for the discovery side (M:N relationships)
--- ---------------------------------------------------------------------
-
 CREATE TABLE movie_genre (
   movie_id  NUMBER(6),
   genre_id  NUMBER(3),
@@ -121,7 +103,6 @@ CREATE TABLE review (
   CONSTRAINT pk_review PRIMARY KEY (user_id, movie_id),
   CONSTRAINT fk_rev_user  FOREIGN KEY (user_id)  REFERENCES app_user (user_id) ON DELETE CASCADE,
   CONSTRAINT fk_rev_movie FOREIGN KEY (movie_id) REFERENCES movie (movie_id)   ON DELETE CASCADE,
-  -- 0.5 to 5.0 in half-star steps
   CONSTRAINT ck_rev_rating CHECK (rating BETWEEN 0.5 AND 5 AND MOD(rating * 2, 1) = 0)
 );
 
@@ -133,11 +114,6 @@ CREATE TABLE watchlist (
   CONSTRAINT fk_wl_user  FOREIGN KEY (user_id)  REFERENCES app_user (user_id) ON DELETE CASCADE,
   CONSTRAINT fk_wl_movie FOREIGN KEY (movie_id) REFERENCES movie (movie_id)   ON DELETE CASCADE
 );
-
--- ---------------------------------------------------------------------
--- 3. Cinema structure: THEATRE -> SCREEN -> SEAT
---    SCREEN and SEAT are weak entities; their natural keys are UNIQUE.
--- ---------------------------------------------------------------------
 
 CREATE TABLE screen (
   screen_id    NUMBER(5),
@@ -165,15 +141,11 @@ CREATE TABLE seat (
   CONSTRAINT ck_seat_type     CHECK (seat_type IN ('REGULAR','PREMIUM'))
 );
 
--- ---------------------------------------------------------------------
--- 4. Shows, bookings, payments
--- ---------------------------------------------------------------------
-
 CREATE TABLE movie_show (
   show_id     NUMBER(6),
   movie_id    NUMBER(6)   NOT NULL,
   screen_id   NUMBER(5)   NOT NULL,
-  show_start  DATE        NOT NULL,      -- Oracle DATE stores date AND time
+  show_start  DATE        NOT NULL,
   base_price  NUMBER(7,2) NOT NULL,
   CONSTRAINT pk_movie_show        PRIMARY KEY (show_id),
   CONSTRAINT fk_show_movie        FOREIGN KEY (movie_id)  REFERENCES movie (movie_id),
@@ -191,7 +163,6 @@ CREATE TABLE booking (
   CONSTRAINT pk_booking         PRIMARY KEY (booking_id),
   CONSTRAINT fk_booking_user    FOREIGN KEY (user_id) REFERENCES app_user (user_id),
   CONSTRAINT fk_booking_show    FOREIGN KEY (show_id) REFERENCES movie_show (show_id),
-  -- Exists only so BOOKING_SEAT can reference (booking_id, show_id) together
   CONSTRAINT uq_booking_show    UNIQUE (booking_id, show_id),
   CONSTRAINT ck_booking_status  CHECK (status IN ('PENDING','CONFIRMED','CANCELLED'))
 );
@@ -202,9 +173,7 @@ CREATE TABLE booking_seat (
   seat_id     NUMBER(6)   NOT NULL,
   price_paid  NUMBER(7,2) NOT NULL,
   CONSTRAINT pk_booking_seat PRIMARY KEY (booking_id, seat_id),
-  -- THE double-booking rule: one seat, one show, one booking
   CONSTRAINT uq_bseat_show_seat UNIQUE (show_id, seat_id),
-  -- Guarantees show_id here always matches the booking's show
   CONSTRAINT fk_bseat_booking FOREIGN KEY (booking_id, show_id)
       REFERENCES booking (booking_id, show_id) ON DELETE CASCADE,
   CONSTRAINT fk_bseat_seat    FOREIGN KEY (seat_id) REFERENCES seat (seat_id),
@@ -219,24 +188,17 @@ CREATE TABLE payment (
   payment_status  VARCHAR2(10) DEFAULT 'PENDING' NOT NULL,
   paid_at         DATE,
   CONSTRAINT pk_payment         PRIMARY KEY (payment_id),
-  CONSTRAINT uq_payment_booking UNIQUE (booking_id),          -- 1:1 with BOOKING
+  CONSTRAINT uq_payment_booking UNIQUE (booking_id),
   CONSTRAINT fk_pay_booking     FOREIGN KEY (booking_id) REFERENCES booking (booking_id),
   CONSTRAINT ck_pay_amount      CHECK (amount > 0),
   CONSTRAINT ck_pay_method      CHECK (payment_method IN ('UPI','CARD','NETBANKING','WALLET')),
   CONSTRAINT ck_pay_status      CHECK (payment_status IN ('PENDING','SUCCESS','FAILED','REFUNDED')),
-  -- A completed or refunded payment must have a timestamp
   CONSTRAINT ck_pay_paid_at     CHECK (payment_status IN ('PENDING','FAILED') OR paid_at IS NOT NULL)
 );
 
--- ---------------------------------------------------------------------
--- 5. Sequences for NEW bookings/payments/movies/shows (sample data uses explicit IDs
---    below 100, so sequences start at 100 to avoid collisions).
--- ---------------------------------------------------------------------
 CREATE SEQUENCE booking_seq START WITH 100 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE payment_seq START WITH 100 INCREMENT BY 1 NOCACHE;
--- Used by the admin page of the web app to add new movies and shows
 CREATE SEQUENCE movie_seq   START WITH 100 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE show_seq    START WITH 100 INCREMENT BY 1 NOCACHE;
 
--- Quick check: should list 15 tables
 SELECT table_name FROM user_tables ORDER BY table_name;

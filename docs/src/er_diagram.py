@@ -1,14 +1,13 @@
-"""ER/EER diagram (Chen notation) for the MovieDB project, drawn with reportlab graphics."""
 import math
 from reportlab.graphics.shapes import Drawing, Rect, Polygon, Line, String, Circle, Group
 from reportlab.lib import colors
 
 W, H = 580, 440
-EW, EH = 84, 30          # entity box
-DW, DH = 36, 16          # diamond half-width / half-height
+EW, EH = 84, 30
+DW, DH = 36, 16
 B, WH = colors.black, colors.white
 
-ENT = {  # name: (x, y, weak, key label)
+ENT = {
     "GENRE": (50, 400, False, "genre_id"), "MOVIE": (265, 400, False, "movie_id"),
     "ACTOR": (500, 400, False, "actor_id"), "APP_USER": (50, 220, False, "user_id"),
     "MOVIE_SHOW": (265, 220, False, "show_id"), "THEATRE": (500, 310, False, "theatre_id"),
@@ -16,7 +15,7 @@ ENT = {  # name: (x, y, weak, key label)
     "SEAT": (500, 130, True, "partial key: row+number"), "PAYMENT": (265, 40, False, "payment_id"),
     "REGULAR_SEAT": (445, 32, False, ""), "PREMIUM_SEAT": (545, 32, False, ""),
 }
-REL = {  # name: (x, y, identifying, attribute note, note offset)
+REL = {
     "BELONGS_TO": (157, 400, False, "", 0), "ACTS_IN": (382, 400, False, "(character_name)", -24),
     "REVIEWS": (96, 312, False, "(rating, review_text)", 24), "WATCHLISTS": (178, 312, False, "(added_on)", 24),
     "SCREENS": (265, 310, False, "", 0), "HAS_SCREEN": (500, 265, True, "", 0),
@@ -24,7 +23,6 @@ REL = {  # name: (x, y, identifying, attribute note, note offset)
     "FOR_SHOW": (265, 175, False, "", 0), "HAS_SEAT": (500, 175, True, "", 0),
     "RESERVES": (382, 130, False, "(price_paid)", -24), "PAID_BY": (265, 85, False, "", 0),
 }
-# (relationship, entity, cardinality, total participation?)
 EDGES = [
     ("BELONGS_TO", "GENRE", "N", False), ("BELONGS_TO", "MOVIE", "M", True),
     ("ACTS_IN", "MOVIE", "M", False), ("ACTS_IN", "ACTOR", "N", False),
@@ -40,7 +38,6 @@ EDGES = [
     ("PAID_BY", "BOOKING", "1", False), ("PAID_BY", "PAYMENT", "1", True),
 ]
 
-
 def _line(g, x1, y1, x2, y2, double=False):
     if not double:
         g.add(Line(x1, y1, x2, y2, strokeColor=B, strokeWidth=0.8))
@@ -50,7 +47,6 @@ def _line(g, x1, y1, x2, y2, double=False):
     ox, oy = -dy / L * 1.6, dx / L * 1.6
     for s in (1, -1):
         g.add(Line(x1 + s * ox, y1 + s * oy, x2 + s * ox, y2 + s * oy, strokeColor=B, strokeWidth=0.7))
-
 
 def _entity(g, x, y, name, weak, key, w=EW):
     g.add(Rect(x - w / 2, y - EH / 2, w, EH, fillColor=WH, strokeColor=B, strokeWidth=0.9))
@@ -64,7 +60,6 @@ def _entity(g, x, y, name, weak, key, w=EW):
         if not key.startswith("partial"):
             g.add(Line(x - tw / 2, y - 10.3, x + tw / 2, y - 10.3, strokeColor=B, strokeWidth=0.5))
 
-
 def _diamond(g, x, y, name, identifying):
     pts = [x - DW, y, x, y + DH, x + DW, y, x, y - DH]
     g.add(Polygon(pts, fillColor=WH, strokeColor=B, strokeWidth=0.9))
@@ -74,11 +69,9 @@ def _diamond(g, x, y, name, identifying):
                       fillColor=None, strokeColor=B, strokeWidth=0.6))
     g.add(String(x, y - 2.3, name, fontName="Cal", fontSize=6.4, textAnchor="middle"))
 
-
 def build(scale=1.0):
     d = Drawing(W * scale, H * scale)
     g = Group()
-    # relationship lines first, shapes drawn on top hide the line ends
     for rel, ent, card, total in EDGES:
         rx, ry = REL[rel][:2]
         ex, ey = ENT[ent][:2]
@@ -89,7 +82,6 @@ def build(scale=1.0):
         L = math.hypot(dx, dy) or 1
         lx, ly = lx + (-dy / L) * 7.5, ly + (dx / L) * 7.5
         g.add(String(lx, ly - 2.5, card, fontName="Cal-Bold", fontSize=7, textAnchor="middle"))
-    # specialization of SEAT (disjoint, total)
     cx, cy = 500, 82
     _line(g, 500, 130, cx, cy, double=True)
     for sub in ("REGULAR_SEAT", "PREMIUM_SEAT"):
@@ -104,7 +96,6 @@ def build(scale=1.0):
     g.add(Circle(cx, cy, 8, fillColor=WH, strokeColor=B, strokeWidth=0.9))
     g.add(String(cx, cy - 2.6, "d", fontName="Cal-Bold", fontSize=8, textAnchor="middle"))
     g.add(String(cx + 13, cy + 2, "seat_type", fontName="Cal-Italic", fontSize=6))
-    # legend
     lx, ly = 8, 8
     g.add(Rect(lx, ly, 196, 70, fillColor=WH, strokeColor=B, strokeWidth=0.5))
     g.add(String(lx + 6, ly + 60, "Legend", fontName="Cal-Bold", fontSize=7))
@@ -124,8 +115,7 @@ def build(scale=1.0):
     d.add(g)
     return d
 
-
 if __name__ == "__main__":
-    import style  # noqa: F401  (registers fonts)
+    import style
     from reportlab.graphics import renderPDF
     renderPDF.drawToFile(build(), "er_test.pdf")

@@ -1,4 +1,3 @@
-// W8: my bookings (BOOKING_SUMMARY view) and cancel (cancel_booking procedure)
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';

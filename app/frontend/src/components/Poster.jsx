@@ -1,5 +1,3 @@
-// We have no poster images in the database, so each movie gets a simple
-// coloured tile made from its title (same title -> same colour).
 export default function Poster({ title, className = '' }) {
   let hash = 0;
   for (const ch of title) hash = (hash * 31 + ch.charCodeAt(0)) % 360;

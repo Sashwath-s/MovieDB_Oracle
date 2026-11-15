@@ -1,4 +1,3 @@
-// W6: seat map (SHOW_SEAT_STATUS view) and booking (book_seats procedure).
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
@@ -6,14 +5,14 @@ import { useUser } from '../UserContext.jsx';
 import { Alert, Loading, useLoad } from '../components/ui.jsx';
 import { fmtDateTime, rupees } from '../format.js';
 
-const MAX_SEATS = 10;   // same limit as book_seats (-20022)
+const MAX_SEATS = 10;
 
 export default function SeatMapPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userId, user } = useUser();
   const { data: show, error, loading, reload } = useLoad(() => api.show(id), [id]);
-  const [selected, setSelected] = useState([]);   // seat_ids
+  const [selected, setSelected] = useState([]);
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -42,7 +41,6 @@ export default function SeatMapPage() {
       const { booking_id } = await api.book(userId, show.show_id, selected);
       navigate(`/bookings/${booking_id}/pay`);
     } catch (err) {
-      // e.g. someone else took a seat a moment ago: nothing was saved, refresh the map
       setMsg(err.message);
       setSelected([]);
       reload();

@@ -1,4 +1,3 @@
-"""Builds docs/Application_Design.pdf - proposed workflows, tech stack and architecture."""
 import pathlib
 from reportlab.graphics.shapes import Drawing, Rect, String, Line, Polygon, Group
 from reportlab.lib import colors
@@ -9,13 +8,11 @@ from style import members_table, P, bullets, table, page_number, PAGE, MARGIN, W
 OUT = pathlib.Path(__file__).resolve().parents[1] / "Application_Design.pdf"
 B, WH, FILL = colors.black, colors.white, colors.HexColor("#d9e2f3")
 
-
 def box(g, x, y, w, h, title, lines=(), fill=WH):
     g.add(Rect(x, y, w, h, fillColor=fill, strokeColor=B, strokeWidth=0.9))
     g.add(String(x + w / 2, y + h - 13, title, fontName="Cal-Bold", fontSize=9, textAnchor="middle"))
     for i, t in enumerate(lines):
         g.add(String(x + w / 2, y + h - 26 - i * 10.5, t, fontName="Cal", fontSize=7.4, textAnchor="middle"))
-
 
 def arrow(g, x1, y1, x2, y2, label="", both=False, label_dy=4):
     g.add(Line(x1, y1, x2, y2, strokeColor=B, strokeWidth=0.9))
@@ -30,7 +27,6 @@ def arrow(g, x1, y1, x2, y2, label="", both=False, label_dy=4):
         head(x2, y2, x1, y1)
     if label:
         g.add(String((x1 + x2) / 2, (y1 + y2) / 2 + label_dy, label, fontName="Cal-Italic", fontSize=7, textAnchor="middle"))
-
 
 def architecture():
     w, h = 480, 175
@@ -50,7 +46,6 @@ def architecture():
     d.add(g)
     return d
 
-
 def booking_flow():
     w, h = 480, 150
     d, g = Drawing(w, h), Group()
@@ -64,7 +59,6 @@ def booking_flow():
         box(g, x, 92, bw, 50, t, ls)
         if i < 3:
             arrow(g, x + bw, 117, x + bw + gap, 117)
-    # outcomes
     box(g, 250, 8, 105, 50, "Success", ["COMMIT, booking PENDING", "go to payment page"], fill=FILL)
     box(g, 370, 8, 105, 50, "ORA-00001", ["someone took a seat first", "ROLLBACK, refresh map"])
     arrow(g, 435, 92, 302, 58)
@@ -75,7 +69,6 @@ def booking_flow():
     g.add(String(117, 20, "can never get the same seat, even at the same time.", fontName="Cal", fontSize=7.2, textAnchor="middle"))
     d.add(g)
     return d
-
 
 story = [P("Movie Discovery, Review &amp; Cinema Booking Database", "title"), Spacer(1, 3),
          P("Application Design (proposed)", "subtitle"), Spacer(1, 4), members_table(), Spacer(1, 8)]

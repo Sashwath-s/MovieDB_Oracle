@@ -1,54 +1,5 @@
--- =====================================================================
--- STEP 10 : INDEXES, PL/SQL FUNCTIONS, PROCEDURES AND A SECOND TRIGGER
--- Run AFTER 02 -> 06. Safe to re-run (CREATE OR REPLACE everywhere,
--- indexes are dropped first).
---
--- What this file adds:
---   Indexes    : 6 indexes on foreign-key columns the app filters on
---   Functions  : get_seat_price, get_avg_rating, seats_left
---   Procedures : book_seats, make_payment, cancel_booking,
---                save_review, print_user_activity
---   Trigger    : trg_review_clears_watchlist
---
--- TRANSACTION RULE FOR ALL PROCEDURES BELOW:
---   The procedures never COMMIT. The caller decides (COMMIT or ROLLBACK).
---   This lets one transaction contain several calls, e.g.
---   book_seats + make_payment, and then one COMMIT for both.
---   If a procedure fails half-way, it rolls back to a SAVEPOINT taken at
---   its start, so it never leaves a half-finished booking behind.
---
--- Application error codes (RAISE_APPLICATION_ERROR):
---   -20001  seat is not in the show's screen     (trigger from 06)
---   -20010  show or seat not found               (get_seat_price)
---   -20020  show does not exist                  (book_seats)
---   -20021  show has already started             (book_seats)
---   -20022  no seats selected / > 10 seats       (book_seats)
---   -20024  seat already booked for this show    (book_seats)
---   -20030  booking does not exist               (make_payment)
---   -20031  booking is not awaiting payment      (make_payment)
---   -20040  booking does not exist               (cancel_booking)
---   -20041  booking already cancelled            (cancel_booking)
---   -20042  show already started                 (cancel_booking)
--- =====================================================================
-
 SET SERVEROUTPUT ON;
 
-
--- =====================================================================
--- 1. INDEXES
--- Oracle automatically creates an index for every PRIMARY KEY and UNIQUE
--- constraint, but NOT for foreign keys. These are the FK columns that
--- the web app searches on most often ("my bookings", "shows of this
--- movie", "reviews of this movie" ...).
---
--- Already covered by an automatic index (so no new index needed):
---   SCREEN(theatre_id)    -> leading column of UQ_SCREEN_THEATRE_NO
---   SEAT(screen_id)       -> leading column of UQ_SEAT_POSITION
---   BOOKING_SEAT(show_id) -> leading column of UQ_BSEAT_SHOW_SEAT
---   PAYMENT(booking_id)   -> UQ_PAYMENT_BOOKING
---   REVIEW(user_id), WATCHLIST(user_id), MOVIE_GENRE(movie_id) ...
---                         -> leading column of the composite PK
--- =====================================================================
 BEGIN
   FOR i IN (SELECT index_name FROM user_indexes
             WHERE  index_name IN ('IDX_BOOKING_USER','IDX_BOOKING_SHOW','IDX_SHOW_MOVIE',
@@ -65,21 +16,10 @@ CREATE INDEX idx_review_movie      ON review (movie_id);
 CREATE INDEX idx_watchlist_movie   ON watchlist (movie_id);
 CREATE INDEX idx_movie_genre_genre ON movie_genre (genre_id);
 
--- All indexes on our tables (automatic ones are named after their constraint)
 SELECT table_name, index_name, uniqueness
 FROM   user_indexes
 ORDER  BY table_name, index_name;
 
-
--- =====================================================================
--- 2. FUNCTIONS
--- =====================================================================
-
--- ---------------------------------------------------------------------
--- get_seat_price: business rule BR15 in ONE place.
--- Premium seats cost the show's base price + 100, regular seats the
--- base price. Used by book_seats and can be used in any SELECT.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_seat_price (
   p_show_id IN movie_show.show_id%TYPE,
   p_seat_id IN seat.seat_id%TYPE
@@ -103,10 +43,6 @@ EXCEPTION
 END get_seat_price;
 /
 
--- ---------------------------------------------------------------------
--- get_avg_rating: average rating of a movie, NULL if nobody rated it.
--- (AVG over zero rows returns NULL, so no NO_DATA_FOUND handling needed.)
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_avg_rating (
   p_movie_id IN movie.movie_id%TYPE
 ) RETURN NUMBER
@@ -121,10 +57,6 @@ BEGIN
 END get_avg_rating;
 /
 
--- ---------------------------------------------------------------------
--- seats_left: free seats for a show = seats in its screen - seats booked.
--- Returns NULL if the show does not exist.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION seats_left (
   p_show_id IN movie_show.show_id%TYPE
 ) RETURN NUMBER
@@ -138,7 +70,7 @@ BEGIN
   WHERE  sh.show_id = p_show_id;
 
   IF v_capacity = 0 THEN
-    RETURN NULL;                      -- no such show
+    RETURN NULL;
   END IF;
 
   SELECT COUNT(*) INTO v_booked FROM booking_seat WHERE show_id = p_show_id;
@@ -147,7 +79,6 @@ BEGIN
 END seats_left;
 /
 
--- Functions can be called inside ordinary SQL:
 SELECT m.title, get_avg_rating(m.movie_id) AS avg_rating
 FROM   movie m
 ORDER  BY avg_rating DESC NULLS LAST;
@@ -158,30 +89,6 @@ FROM   movie_show sh
 JOIN   movie m ON m.movie_id = sh.movie_id
 WHERE  sh.screen_id = 1;
 
-
--- =====================================================================
--- 3. PROCEDURES
--- =====================================================================
-
--- ---------------------------------------------------------------------
--- book_seats: books a list of seats for one show as ONE unit of work.
---
---   p_seat_ids is a comma-separated list of seat IDs, e.g. '101,102'.
---   (A plain string keeps it easy to call from SQL Developer and from the
---    web app. REGEXP_SUBSTR picks out the i-th number.)
---
--- Steps:
---   1. check the show exists and has not started
---   2. insert a PENDING booking and get its new ID from booking_seq
---   3. insert one BOOKING_SEAT row per seat, priced with get_seat_price
--- If ANY seat fails (taken, wrong screen, does not exist) everything done
--- by this call is undone with ROLLBACK TO SAVEPOINT, so either all seats
--- are booked or none are (atomicity).
---
--- Note there is no "is this seat free?" SELECT before inserting. The
--- UNIQUE (show_id, seat_id) constraint already answers that, and it is
--- safe even when two users click "Book" at the same moment.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE book_seats (
   p_user_id    IN  app_user.user_id%TYPE,
   p_show_id    IN  movie_show.show_id%TYPE,
@@ -196,7 +103,6 @@ BEGIN
   SAVEPOINT start_booking;
   p_booking_id := NULL;
 
-  -- 1. Show must exist and be in the future
   BEGIN
     SELECT show_start INTO v_show_start FROM movie_show WHERE show_id = p_show_id;
   EXCEPTION
@@ -213,12 +119,10 @@ BEGIN
     RAISE_APPLICATION_ERROR(-20022, 'Select between 1 and 10 seats.');
   END IF;
 
-  -- 2. The booking itself (FK checks that the user exists)
   INSERT INTO booking (booking_id, user_id, show_id, booking_time, status)
   VALUES (booking_seq.NEXTVAL, p_user_id, p_show_id, SYSDATE, 'PENDING')
   RETURNING booking_id INTO p_booking_id;
 
-  -- 3. One row per seat
   FOR i IN 1 .. v_seat_count LOOP
     v_seat_id := TO_NUMBER(TRIM(REGEXP_SUBSTR(p_seat_ids, '[^,]+', 1, i)));
 
@@ -230,25 +134,16 @@ BEGIN
                        v_seat_count || ' seat(s). Status: PENDING.');
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
-    -- ORA-00001 from UQ_BSEAT_SHOW_SEAT (or the same seat twice in the list)
     ROLLBACK TO start_booking;
     p_booking_id := NULL;
     RAISE_APPLICATION_ERROR(-20024, 'One or more of these seats is already booked for this show.');
   WHEN OTHERS THEN
     ROLLBACK TO start_booking;
     p_booking_id := NULL;
-    RAISE;                          -- pass the original error to the caller
+    RAISE;
 END book_seats;
 /
 
--- ---------------------------------------------------------------------
--- make_payment: simulated payment (always succeeds).
--- The amount is the sum of the seat prices. Uses MERGE because a
--- booking may already have a PENDING/FAILED payment row (assumption 5:
--- a retry updates that row instead of adding a second one).
--- SELECT ... FOR UPDATE locks the booking row so the same booking
--- cannot be paid twice at the same time.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE make_payment (
   p_booking_id IN booking.booking_id%TYPE,
   p_method     IN payment.payment_method%TYPE
@@ -295,16 +190,10 @@ BEGIN
 EXCEPTION
   WHEN OTHERS THEN
     ROLLBACK TO start_payment;
-    RAISE;                          -- e.g. ORA-02290 if the method is invalid
+    RAISE;
 END make_payment;
 /
 
--- ---------------------------------------------------------------------
--- cancel_booking: business rule BR16.
--- Frees the seats (deletes the BOOKING_SEAT rows), keeps the booking row
--- as CANCELLED for history, and marks a successful payment REFUNDED.
--- Not allowed once the show has started.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE cancel_booking (
   p_booking_id IN booking.booking_id%TYPE
 )
@@ -340,7 +229,6 @@ BEGIN
 
   UPDATE booking SET status = 'CANCELLED' WHERE booking_id = p_booking_id;
 
-  -- paid_at keeps its value, so ck_pay_paid_at is still satisfied
   UPDATE payment SET payment_status = 'REFUNDED'
   WHERE  booking_id = p_booking_id AND payment_status = 'SUCCESS';
 
@@ -358,11 +246,6 @@ EXCEPTION
 END cancel_booking;
 /
 
--- ---------------------------------------------------------------------
--- save_review: add a review, or update it if the user already reviewed
--- this movie (BR2: one review per user per movie). MERGE = "insert or
--- update" in one statement. The rating is still checked by ck_rev_rating.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE save_review (
   p_user_id  IN review.user_id%TYPE,
   p_movie_id IN review.movie_id%TYPE,
@@ -384,12 +267,6 @@ BEGIN
 END save_review;
 /
 
--- ---------------------------------------------------------------------
--- print_user_activity: a small report printed with DBMS_OUTPUT.
--- Demonstrates the two kinds of cursor:
---   * an explicit cursor with OPEN / FETCH / EXIT WHEN %NOTFOUND / CLOSE
---   * a cursor FOR loop (Oracle opens, fetches and closes automatically)
--- ---------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE print_user_activity (
   p_user_id IN app_user.user_id%TYPE
 )
@@ -411,7 +288,6 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Activity of ' || v_user.full_name || ' (@' || v_user.username || ')');
   DBMS_OUTPUT.PUT_LINE('--------------------------------------------');
 
-  -- Explicit cursor
   DBMS_OUTPUT.PUT_LINE('Reviews:');
   OPEN c_reviews;
   LOOP
@@ -424,7 +300,6 @@ BEGIN
   END IF;
   CLOSE c_reviews;
 
-  -- Cursor FOR loop
   DBMS_OUTPUT.PUT_LINE('Bookings:');
   FOR rec IN (SELECT bk.booking_id, m.title, bk.status,
                      NVL((SELECT SUM(bs.price_paid) FROM booking_seat bs
@@ -448,17 +323,6 @@ EXCEPTION
 END print_user_activity;
 /
 
-
--- =====================================================================
--- 4. TRIGGER: reviewing a movie removes it from your watchlist
--- (Letterboxd does this: once you have logged a film you have "watched"
---  it, so it no longer belongs on the to-watch list.)
--- AFTER INSERT only: editing an existing review should not touch the
--- watchlist. MERGE's INSERT branch also fires this trigger.
--- It modifies WATCHLIST, not REVIEW, so there is no mutating-table error.
--- (Rows in the sample data that existed before this trigger, like
---  rahul_v's Dangal, are not changed: triggers only act on new events.)
--- =====================================================================
 CREATE OR REPLACE TRIGGER trg_review_clears_watchlist
 AFTER INSERT ON review
 FOR EACH ROW
@@ -469,14 +333,9 @@ BEGIN
 END;
 /
 
-
--- =====================================================================
--- Everything this project created (data dictionary)
--- =====================================================================
 SELECT object_type, object_name, status
 FROM   user_objects
 WHERE  object_type IN ('FUNCTION','PROCEDURE','TRIGGER','VIEW','SEQUENCE')
 ORDER  BY object_type, object_name;
 
--- Any compile errors would be listed here (should return no rows)
 SELECT name, type, line, text FROM user_errors ORDER BY name, sequence;

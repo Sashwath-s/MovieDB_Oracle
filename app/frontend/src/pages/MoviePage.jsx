@@ -1,4 +1,3 @@
-// W2 movie page, W3 rate / review, W4 add to watchlist.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api.js';
@@ -16,7 +15,6 @@ function ReviewForm({ movie, userId, onSaved }) {
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  // when the "acting as" user changes, show that user's review instead
   useEffect(() => {
     setRating(mine?.rating ?? 4);
     setText(mine?.review_text ?? '');
@@ -28,7 +26,6 @@ function ReviewForm({ movie, userId, onSaved }) {
     setBusy(true);
     try {
       await api.saveReview(movie.movie_id, userId, rating, text);
-      // a NEW review fires trg_review_clears_watchlist
       setMsg({ kind: 'success', text: mine ? 'Review updated.' : movie.in_watchlist
         ? 'Review saved. The movie was removed from your watchlist (trigger).' : 'Review saved.' });
       onSaved();
@@ -105,7 +102,6 @@ export default function MoviePage() {
   if (error) return <Alert>{error}</Alert>;
   if (!movie) return null;
 
-  // group upcoming shows by date for display
   const byDate = {};
   for (const s of movie.shows) (byDate[s.show_start.slice(0, 10)] ||= []).push(s);
 

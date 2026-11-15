@@ -1,7 +1,3 @@
-// Every call to the Express API goes through this one function.
-// If the API answers with an error, it sends { error: "message" } (the
-// message comes from errors.js, which translates the Oracle error), and we
-// throw it so the page can show it.
 async function request(method, path, body) {
   const res = await fetch('/api' + path, {
     method,
@@ -13,7 +9,6 @@ async function request(method, path, body) {
   return data;
 }
 
-// Builds "?a=1&b=2", leaving out empty values
 function qs(params) {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== '') p.set(k, v);

@@ -1,5 +1,3 @@
--- Run all project scripts in order (SQL*Plus). Usage:
---   sqlplus MOVIEDB/<password>@localhost:1521/XEPDB1 @run_all.sql
 SET DEFINE OFF
 SET SQLBLANKLINES ON
 SET ECHO ON

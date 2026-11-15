@@ -1,19 +1,3 @@
--- =====================================================================
--- STEP 8 : VIEWS
--- A view is a stored query. It stores no data of its own; each time it
--- is queried, Oracle runs the underlying SELECT on the base tables.
--- All five views below contain joins/aggregates, so they are read-only
--- (not updatable) — that is fine, they are for reporting.
--- =====================================================================
-
-
--- ---------------------------------------------------------------------
--- VIEW 1: MOVIE_RATING_SUMMARY
--- Purpose: the "movie page" numbers — how many reviews and the average
--- rating — without repeating the LEFT JOIN + GROUP BY in every query.
--- Also shows why we do NOT store avg_rating in MOVIE: it is derived and
--- would go stale every time a review is added (update anomaly).
--- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW movie_rating_summary AS
 SELECT m.movie_id,
        m.title,
@@ -24,16 +8,6 @@ FROM   movie m
 LEFT   JOIN review r ON r.movie_id = m.movie_id
 GROUP  BY m.movie_id, m.title, m.movie_language;
 
-
--- ---------------------------------------------------------------------
--- VIEW 2: MOVIE_DETAILS
--- Purpose: one row per movie with its genres and cast as readable text.
--- The M:N tables are normalized (one row per genre/actor); this view
--- "de-normalizes" them for display only, using LISTAGG.
--- Scalar subqueries are used instead of joining both M:N tables at once:
--- joining MOVIE_GENRE and MOVIE_ACTOR together would multiply rows
--- (3 genres x 3 actors = 9 rows per movie).
--- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW movie_details AS
 SELECT m.movie_id,
        m.title,
@@ -51,12 +25,6 @@ SELECT m.movie_id,
         WHERE  ma.movie_id = m.movie_id) AS cast_list
 FROM   movie m;
 
-
--- ---------------------------------------------------------------------
--- VIEW 3: THEATRE_SHOW_SCHEDULE
--- Purpose: what a customer sees when browsing "what's playing where".
--- Hides the 4-table join behind a simple name.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW theatre_show_schedule AS
 SELECT sh.show_id,
        t.theatre_name,
@@ -74,13 +42,6 @@ JOIN   movie   m  ON m.movie_id   = sh.movie_id
 JOIN   screen  sc ON sc.screen_id = sh.screen_id
 JOIN   theatre t  ON t.theatre_id = sc.theatre_id;
 
-
--- ---------------------------------------------------------------------
--- VIEW 4: BOOKING_SUMMARY
--- Purpose: one row per booking with who, what, where, how many seats,
--- the total (computed, not stored) and the payment status.
--- LEFT JOINs keep cancelled bookings (no seats) and unpaid bookings.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW booking_summary AS
 SELECT b.booking_id,
        u.username,
@@ -103,14 +64,6 @@ LEFT   JOIN payment      p  ON p.booking_id  = b.booking_id
 GROUP  BY b.booking_id, u.username, m.title, t.theatre_name, sh.show_start,
           b.status, p.payment_status, p.amount;
 
-
--- ---------------------------------------------------------------------
--- VIEW 5: SHOW_SEAT_STATUS
--- Purpose: the seat map for every show — each seat of the show's screen
--- marked AVAILABLE or BOOKED, with its price. This is what the booking
--- screen will read in Phase 2.
--- Business rule BR15: premium seats cost base_price + 100.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW show_seat_status AS
 SELECT sh.show_id,
        m.title,
@@ -130,34 +83,23 @@ JOIN   seat  st ON st.screen_id = sh.screen_id
 LEFT   JOIN booking_seat bs ON bs.show_id = sh.show_id
                            AND bs.seat_id = st.seat_id;
 
-
--- =====================================================================
--- Demo queries on the views (notice how short they become)
--- =====================================================================
-
--- Top-rated movies with at least 2 reviews
 SELECT title, avg_rating, review_count
 FROM   movie_rating_summary
 WHERE  review_count >= 2
 ORDER  BY avg_rating DESC;
 
--- A movie page
 SELECT * FROM movie_details WHERE title = 'Inception';
 
--- Everything playing in Hyderabad on 3 October
 SELECT theatre_name, screen_no, title, TO_CHAR(show_start, 'HH24:MI') AS starts, base_price
 FROM   theatre_show_schedule
 WHERE  city = 'Hyderabad'
 AND    TRUNC(show_start) = DATE '2026-10-03'
 ORDER  BY show_start;
 
--- Bookings where the amount charged doesn't match the seats (should be
--- only the cancelled/refunded ones, whose seats were released)
 SELECT booking_id, username, booking_status, total_amount, amount_charged, payment_status
 FROM   booking_summary
 WHERE  total_amount <> NVL(amount_charged, 0);
 
--- Seat map for show 1, laid out row by row
 SELECT seat_row,
        LISTAGG(seat_label || CASE seat_status WHEN 'BOOKED' THEN '(X)' ELSE '' END, '  ')
          WITHIN GROUP (ORDER BY seat_number) AS seats
@@ -166,5 +108,4 @@ WHERE  show_id = 1
 GROUP  BY seat_row
 ORDER  BY seat_row;
 
--- Views are listed in the data dictionary
 SELECT view_name FROM user_views ORDER BY view_name;

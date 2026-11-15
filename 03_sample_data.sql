@@ -1,13 +1,3 @@
--- =====================================================================
--- STEP 6 : SAMPLE DATA
--- Run AFTER 02_create_tables.sql. Parents are inserted before children.
--- The data is designed so that every query in 04_queries.sql returns
--- something interesting (see "Built-in test cases" at the bottom).
--- =====================================================================
-
--- ---------------------------------------------------------------------
--- USERS (user 8 is new and has written no reviews)
--- ---------------------------------------------------------------------
 INSERT INTO app_user VALUES (1, 'aarav_k',   'Aarav Kumar',  'aarav.k@example.com',   '9000000001', 'Hyderabad', DATE '2003-04-12', DATE '2025-01-10');
 INSERT INTO app_user VALUES (2, 'priya_s',   'Priya Sharma', 'priya.s@example.com',   '9000000002', 'Hyderabad', DATE '2004-08-23', DATE '2025-02-14');
 INSERT INTO app_user VALUES (3, 'rahul_v',   'Rahul Verma',  'rahul.v@example.com',   '9000000003', 'Bengaluru', DATE '2002-11-05', DATE '2025-03-01');
@@ -17,9 +7,6 @@ INSERT INTO app_user VALUES (6, 'ananya_m',  'Ananya Menon', 'ananya.m@example.c
 INSERT INTO app_user VALUES (7, 'vikram_j',  'Vikram Joshi', 'vikram.j@example.com',  '9000000007', 'Mumbai',    DATE '2000-09-14', DATE '2025-07-07');
 INSERT INTO app_user VALUES (8, 'divya_p',   'Divya Patel',  'divya.p@example.com',   NULL,         'Hyderabad', NULL,              DATE '2026-09-20');
 
--- ---------------------------------------------------------------------
--- MOVIES
--- ---------------------------------------------------------------------
 INSERT INTO movie VALUES (1,  'Inception',                   DATE '2010-07-16', 148, 'English',  'UA', 'A thief enters dreams to plant an idea.');
 INSERT INTO movie VALUES (2,  'Interstellar',                DATE '2014-11-07', 169, 'English',  'UA', 'Astronauts travel through a wormhole to save humanity.');
 INSERT INTO movie VALUES (3,  'The Dark Knight',             DATE '2008-07-18', 152, 'English',  'UA', 'Batman faces the Joker in Gotham City.');
@@ -33,9 +20,6 @@ INSERT INTO movie VALUES (10, 'Baahubali 2: The Conclusion', DATE '2017-04-28', 
 INSERT INTO movie VALUES (11, 'RRR',                         DATE '2022-03-25', 187, 'Telugu',   'UA', 'Two revolutionaries form an unlikely friendship.');
 INSERT INTO movie VALUES (12, 'Eega',                        DATE '2012-07-06', 134, 'Telugu',   'U',  'A murdered man is reborn as a housefly seeking revenge.');
 
--- ---------------------------------------------------------------------
--- GENRES (Romance has no movies -> useful for LEFT JOIN demo)
--- ---------------------------------------------------------------------
 INSERT INTO genre VALUES (1, 'Action');
 INSERT INTO genre VALUES (2, 'Drama');
 INSERT INTO genre VALUES (3, 'Sci-Fi');
@@ -46,9 +30,6 @@ INSERT INTO genre VALUES (7, 'Fantasy');
 INSERT INTO genre VALUES (8, 'Biography');
 INSERT INTO genre VALUES (9, 'Romance');
 
--- ---------------------------------------------------------------------
--- MOVIE_GENRE (every movie has 2-3 genres)
--- ---------------------------------------------------------------------
 INSERT INTO movie_genre VALUES (1, 3);
 INSERT INTO movie_genre VALUES (1, 1);
 INSERT INTO movie_genre VALUES (1, 4);
@@ -78,9 +59,6 @@ INSERT INTO movie_genre VALUES (11, 2);
 INSERT INTO movie_genre VALUES (12, 7);
 INSERT INTO movie_genre VALUES (12, 1);
 
--- ---------------------------------------------------------------------
--- ACTORS
--- ---------------------------------------------------------------------
 INSERT INTO actor VALUES (1,  'Leonardo DiCaprio',   'American');
 INSERT INTO actor VALUES (2,  'Matthew McConaughey', 'American');
 INSERT INTO actor VALUES (3,  'Christian Bale',      'British');
@@ -96,9 +74,6 @@ INSERT INTO actor VALUES (12, 'Michael Caine',       'British');
 INSERT INTO actor VALUES (13, 'Nani',                'Indian');
 INSERT INTO actor VALUES (14, 'Sudeep',              'Indian');
 
--- ---------------------------------------------------------------------
--- MOVIE_ACTOR (Spirited Away deliberately has no cast rows)
--- ---------------------------------------------------------------------
 INSERT INTO movie_actor VALUES (1, 1,  'Cobb');
 INSERT INTO movie_actor VALUES (1, 4,  'Robert Fischer');
 INSERT INTO movie_actor VALUES (1, 12, 'Miles');
@@ -119,10 +94,6 @@ INSERT INTO movie_actor VALUES (11, 10,'Alluri Sitarama Raju');
 INSERT INTO movie_actor VALUES (12, 13,'Nani');
 INSERT INTO movie_actor VALUES (12, 14,'Sudeep');
 
--- ---------------------------------------------------------------------
--- REVIEWS (26 rows). Movie 12 (Eega) is never reviewed.
--- Some rows have NULL review_text = rating-only log.
--- ---------------------------------------------------------------------
 INSERT INTO review VALUES (1, 1,  5.0, 'Mind-bending from start to finish.',        DATE '2025-02-01');
 INSERT INTO review VALUES (1, 2,  4.5, 'The docking scene is unforgettable.',       DATE '2025-02-10');
 INSERT INTO review VALUES (1, 3,  5.0, 'Best superhero film ever made.',            DATE '2025-03-05');
@@ -156,9 +127,6 @@ INSERT INTO review VALUES (7, 3,  4.0, NULL,                                    
 INSERT INTO review VALUES (7, 5,  4.5, 'Genre-bending and sharp.',                  DATE '2025-08-14');
 INSERT INTO review VALUES (7, 11, 2.5, 'Too over the top for me.',                  DATE '2025-09-03');
 
--- ---------------------------------------------------------------------
--- WATCHLIST (user 3 has movie 8 in watchlist AND has reviewed it)
--- ---------------------------------------------------------------------
 INSERT INTO watchlist VALUES (1, 5,  DATE '2025-08-01');
 INSERT INTO watchlist VALUES (1, 6,  DATE '2025-08-02');
 INSERT INTO watchlist VALUES (1, 12, DATE '2025-08-05');
@@ -175,17 +143,11 @@ INSERT INTO watchlist VALUES (7, 12, DATE '2025-09-10');
 INSERT INTO watchlist VALUES (8, 11, DATE '2026-09-21');
 INSERT INTO watchlist VALUES (8, 4,  DATE '2026-09-22');
 
--- ---------------------------------------------------------------------
--- THEATRES (fictional names)
--- ---------------------------------------------------------------------
 INSERT INTO theatre VALUES (1, 'Cineplex Central',   'Hyderabad', 'Ameerpet Main Road');
 INSERT INTO theatre VALUES (2, 'Starlight Multiplex', 'Hyderabad', 'Gachibowli, Financial District');
 INSERT INTO theatre VALUES (3, 'Royal Talkies',      'Hyderabad', 'Kukatpally Housing Board');
 INSERT INTO theatre VALUES (4, 'Orion Screens',      'Bengaluru', 'Koramangala 5th Block');
 
--- ---------------------------------------------------------------------
--- SCREENS (theatre 1 has 3 screens, theatre 2 has 2, others have 1)
--- ---------------------------------------------------------------------
 INSERT INTO screen VALUES (1, 1, 1, 'IMAX');
 INSERT INTO screen VALUES (2, 1, 2, '2D');
 INSERT INTO screen VALUES (3, 1, 3, '3D');
@@ -194,33 +156,21 @@ INSERT INTO screen VALUES (5, 2, 2, '2D');
 INSERT INTO screen VALUES (6, 3, 1, '2D');
 INSERT INTO screen VALUES (7, 4, 1, '2D');
 
--- ---------------------------------------------------------------------
--- SEATS: every screen gets rows A-D with seats 1-10 (40 seats/screen,
--- 280 seats total). Rows C and D (the back rows) are PREMIUM.
--- seat_id = screen_id*100 + a number from 01 to 40:
---   A1-A4 -> x01..x04, B1-B4 -> x05..x08, C1-C4 -> x09..x12
---   A5-A10 -> x13..x18, B5-B10 -> x19..x24, C5-C10 -> x25..x30
---   D1-D10 -> x31..x40
--- (The first 12 seats keep the IDs they had when screens had 12 seats,
---  so the bookings below and the tests in 06/09 still refer to the same
---  seats, e.g. 105 = screen 1 seat B1, 109 = screen 1 seat C1.)
--- A small anonymous PL/SQL block avoids writing 280 INSERT statements.
--- ---------------------------------------------------------------------
 DECLARE
   v_id seat.seat_id%TYPE;
 BEGIN
-  FOR s IN 1 .. 7 LOOP                 -- screen
-    FOR r IN 1 .. 4 LOOP               -- row: 1 = A ... 4 = D
-      FOR n IN 1 .. 10 LOOP            -- seat number in the row
+  FOR s IN 1 .. 7 LOOP
+    FOR r IN 1 .. 4 LOOP
+      FOR n IN 1 .. 10 LOOP
         v_id := CASE
-                  WHEN r <= 3 AND n <= 4 THEN s * 100 + (r - 1) * 4 + n         -- x01..x12
-                  WHEN r <= 3            THEN s * 100 + 12 + (r - 1) * 6 + (n - 4) -- x13..x30
-                  ELSE                        s * 100 + 30 + n                   -- x31..x40
+                  WHEN r <= 3 AND n <= 4 THEN s * 100 + (r - 1) * 4 + n
+                  WHEN r <= 3            THEN s * 100 + 12 + (r - 1) * 6 + (n - 4)
+                  ELSE                        s * 100 + 30 + n
                 END;
         INSERT INTO seat (seat_id, screen_id, seat_row, seat_number, seat_type)
         VALUES (v_id,
                 s,
-                CHR(64 + r),                          -- 65 = 'A'
+                CHR(64 + r),
                 n,
                 CASE WHEN r >= 3 THEN 'PREMIUM' ELSE 'REGULAR' END);
       END LOOP;
@@ -229,9 +179,6 @@ BEGIN
 END;
 /
 
--- ---------------------------------------------------------------------
--- SHOWS (Premium seat price = base_price + 100)
--- ---------------------------------------------------------------------
 INSERT INTO movie_show VALUES (1,  11, 1, TO_DATE('2026-10-02 18:30','YYYY-MM-DD HH24:MI'), 250);
 INSERT INTO movie_show VALUES (2,  11, 4, TO_DATE('2026-10-02 21:00','YYYY-MM-DD HH24:MI'), 200);
 INSERT INTO movie_show VALUES (3,  1,  1, TO_DATE('2026-10-03 14:00','YYYY-MM-DD HH24:MI'), 300);
@@ -245,9 +192,6 @@ INSERT INTO movie_show VALUES (10, 9,  2, TO_DATE('2026-10-05 13:00','YYYY-MM-DD
 INSERT INTO movie_show VALUES (11, 6,  6, TO_DATE('2026-10-05 10:00','YYYY-MM-DD HH24:MI'), 150);
 INSERT INTO movie_show VALUES (12, 12, 4, TO_DATE('2026-10-06 12:00','YYYY-MM-DD HH24:MI'), 160);
 
--- ---------------------------------------------------------------------
--- BOOKINGS
--- ---------------------------------------------------------------------
 INSERT INTO booking VALUES (1,  1, 1,  TO_DATE('2026-09-25 10:15','YYYY-MM-DD HH24:MI'), 'CONFIRMED');
 INSERT INTO booking VALUES (2,  2, 1,  TO_DATE('2026-09-25 11:40','YYYY-MM-DD HH24:MI'), 'CONFIRMED');
 INSERT INTO booking VALUES (3,  3, 4,  TO_DATE('2026-09-26 09:05','YYYY-MM-DD HH24:MI'), 'CONFIRMED');
@@ -261,35 +205,28 @@ INSERT INTO booking VALUES (10, 8, 5,  TO_DATE('2026-09-28 10:00','YYYY-MM-DD HH
 INSERT INTO booking VALUES (11, 3, 10, TO_DATE('2026-09-28 14:25','YYYY-MM-DD HH24:MI'), 'CONFIRMED');
 INSERT INTO booking VALUES (12, 4, 1,  TO_DATE('2026-09-28 20:50','YYYY-MM-DD HH24:MI'), 'CONFIRMED');
 
--- ---------------------------------------------------------------------
--- BOOKING_SEAT (booking_id, show_id, seat_id, price_paid)
--- Cancelled bookings 9 and 10 have no seats (seats were released).
--- ---------------------------------------------------------------------
-INSERT INTO booking_seat VALUES (1,  1,  105, 250)   /* B1 */;
-INSERT INTO booking_seat VALUES (1,  1,  106, 250)   /* B2 */;
-INSERT INTO booking_seat VALUES (2,  1,  109, 350)   /* C1 premium */;
-INSERT INTO booking_seat VALUES (2,  1,  110, 350)   /* C2 premium */;
+INSERT INTO booking_seat VALUES (1,  1,  105, 250);
+INSERT INTO booking_seat VALUES (1,  1,  106, 250);
+INSERT INTO booking_seat VALUES (2,  1,  109, 350);
+INSERT INTO booking_seat VALUES (2,  1,  110, 350);
 INSERT INTO booking_seat VALUES (3,  4,  101, 300);
 INSERT INTO booking_seat VALUES (3,  4,  102, 300);
 INSERT INTO booking_seat VALUES (3,  4,  103, 300);
 INSERT INTO booking_seat VALUES (4,  9,  701, 220);
 INSERT INTO booking_seat VALUES (4,  9,  702, 220);
-INSERT INTO booking_seat VALUES (5,  2,  409, 300)   /* premium */;
+INSERT INTO booking_seat VALUES (5,  2,  409, 300);
 INSERT INTO booking_seat VALUES (6,  8,  605, 150);
 INSERT INTO booking_seat VALUES (6,  8,  606, 150);
-INSERT INTO booking_seat VALUES (7,  3,  111, 400)   /* premium */;
-INSERT INTO booking_seat VALUES (7,  3,  112, 400)   /* premium */;
+INSERT INTO booking_seat VALUES (7,  3,  111, 400);
+INSERT INTO booking_seat VALUES (7,  3,  112, 400);
 INSERT INTO booking_seat VALUES (8,  6,  305, 180);
 INSERT INTO booking_seat VALUES (8,  6,  306, 180);
 INSERT INTO booking_seat VALUES (8,  6,  307, 180);
 INSERT INTO booking_seat VALUES (8,  6,  308, 180);
-INSERT INTO booking_seat VALUES (11, 10, 209, 280)   /* premium */;
+INSERT INTO booking_seat VALUES (11, 10, 209, 280);
 INSERT INTO booking_seat VALUES (12, 1,  107, 250);
 INSERT INTO booking_seat VALUES (12, 1,  108, 250);
 
--- ---------------------------------------------------------------------
--- PAYMENTS (one per booking)
--- ---------------------------------------------------------------------
 INSERT INTO payment VALUES (1,  1,  500, 'UPI',        'SUCCESS',  TO_DATE('2026-09-25 10:16','YYYY-MM-DD HH24:MI'));
 INSERT INTO payment VALUES (2,  2,  700, 'CARD',       'SUCCESS',  TO_DATE('2026-09-25 11:42','YYYY-MM-DD HH24:MI'));
 INSERT INTO payment VALUES (3,  3,  900, 'UPI',        'SUCCESS',  TO_DATE('2026-09-26 09:06','YYYY-MM-DD HH24:MI'));
@@ -305,34 +242,18 @@ INSERT INTO payment VALUES (12, 12, 500, 'WALLET',     'SUCCESS',  TO_DATE('2026
 
 COMMIT;
 
--- ---------------------------------------------------------------------
--- Row counts (expected in brackets)
--- ---------------------------------------------------------------------
-SELECT 'APP_USER' tbl, COUNT(*) cnt FROM app_user        -- 8
-UNION ALL SELECT 'MOVIE',        COUNT(*) FROM movie        -- 12
-UNION ALL SELECT 'GENRE',        COUNT(*) FROM genre        -- 9
-UNION ALL SELECT 'MOVIE_GENRE',  COUNT(*) FROM movie_genre  -- 28
-UNION ALL SELECT 'ACTOR',        COUNT(*) FROM actor        -- 14
-UNION ALL SELECT 'MOVIE_ACTOR',  COUNT(*) FROM movie_actor  -- 19
-UNION ALL SELECT 'REVIEW',       COUNT(*) FROM review       -- 26
-UNION ALL SELECT 'WATCHLIST',    COUNT(*) FROM watchlist    -- 15
-UNION ALL SELECT 'THEATRE',      COUNT(*) FROM theatre      -- 4
-UNION ALL SELECT 'SCREEN',       COUNT(*) FROM screen       -- 7
-UNION ALL SELECT 'SEAT',         COUNT(*) FROM seat         -- 280
-UNION ALL SELECT 'MOVIE_SHOW',   COUNT(*) FROM movie_show   -- 12
-UNION ALL SELECT 'BOOKING',      COUNT(*) FROM booking      -- 12
-UNION ALL SELECT 'BOOKING_SEAT', COUNT(*) FROM booking_seat -- 21
-UNION ALL SELECT 'PAYMENT',      COUNT(*) FROM payment     /* 12 */;
-
--- ---------------------------------------------------------------------
--- Built-in test cases (so you know what the queries should show)
---  * Eega (12): never reviewed, never booked
---  * Spirited Away (6): has a show but no bookings, and no cast rows
---  * Romance genre: no movies
---  * divya_p (8): booked but never reviewed
---  * ananya_m (6): reviewed but never booked
---  * aarav_k, priya_s, karthik_n: reviewed every Sci-Fi movie
---  * RRR average rating is exactly 4.0 (boundary case for "> 4")
---  * Cineplex Central: the only theatre with more than 2 screens
---  * Show 1 (RRR, IMAX): 6 of 40 seats booked
--- ---------------------------------------------------------------------
+SELECT 'APP_USER' tbl, COUNT(*) cnt FROM app_user
+UNION ALL SELECT 'MOVIE',        COUNT(*) FROM movie
+UNION ALL SELECT 'GENRE',        COUNT(*) FROM genre
+UNION ALL SELECT 'MOVIE_GENRE',  COUNT(*) FROM movie_genre
+UNION ALL SELECT 'ACTOR',        COUNT(*) FROM actor
+UNION ALL SELECT 'MOVIE_ACTOR',  COUNT(*) FROM movie_actor
+UNION ALL SELECT 'REVIEW',       COUNT(*) FROM review
+UNION ALL SELECT 'WATCHLIST',    COUNT(*) FROM watchlist
+UNION ALL SELECT 'THEATRE',      COUNT(*) FROM theatre
+UNION ALL SELECT 'SCREEN',       COUNT(*) FROM screen
+UNION ALL SELECT 'SEAT',         COUNT(*) FROM seat
+UNION ALL SELECT 'MOVIE_SHOW',   COUNT(*) FROM movie_show
+UNION ALL SELECT 'BOOKING',      COUNT(*) FROM booking
+UNION ALL SELECT 'BOOKING_SEAT', COUNT(*) FROM booking_seat
+UNION ALL SELECT 'PAYMENT',      COUNT(*) FROM payment;

@@ -1,4 +1,3 @@
-// W4: watchlist. "In theatres" uses the same idea as Q37 (watchlist ∩ shows).
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
