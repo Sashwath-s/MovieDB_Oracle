@@ -4,7 +4,7 @@ A database project that mixes **Letterboxd** (rate, review and watchlist movies)
 
 Right now people use one app to log the films they like and a totally different one to book tickets, so that data never ends up in the same place. We designed a single relational database for both halves, and we made the database itself enforce the important rules (like *a seat can't be sold twice for the same show*) using constraints, plus triggers and PL/SQL procedures where a constraint wasn't enough. A React + Express web app sits on top and calls those procedures, so every rule still lives in the database.
 
-**Final submitted version:** Git tag `final` · commit `COMMIT_HASH_HERE`
+**Final submitted version:** Git tag `final` · commit 2538d3a
 
 ---
 
