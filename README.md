@@ -194,3 +194,11 @@ python report/build_report.py
 - The procedures don't COMMIT. The backend commits once the whole request works, or rolls back.
 - book_seats doesn't check if a seat is free first. It just inserts and lets the UNIQUE constraint catch it, which also handles two people booking at the same time.
 - The backend doesn't re-check rules. It just shows the error Oracle gives back.
+
+### Use of AI
+
+We used AI tools (Claude) during this project, following the course rule that AI may be used as long as every member understands and can justify the work.
+
+- What AI helped with: drafting the SQL and PL/SQL scripts, the backend and frontend code, and parts of the documentation (README, design document), and explaining concepts and errors while we worked.
+- What we did ourselves: decided the scope and features, reviewed every file, ran all scripts on Oracle 21c XE and tested the web app end to end, fixed the problems we found (setup, connection and data issues), and split the parts so each member owns and can explain one feature (see the table above).
+- How we checked it: we ran every script and compared the output with the expected results written in the scripts, tested each workflow in the app, and checked the design decisions (keys, normalization, constraints) against our course material.
