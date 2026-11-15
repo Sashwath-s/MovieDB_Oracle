@@ -4,6 +4,8 @@ A database project that mixes **Letterboxd** (rate, review and watchlist movies)
 
 Right now people use one app to log the films they like and a totally different one to book tickets, so that data never ends up in the same place. We designed a single relational database for both halves, and we made the database itself enforce the important rules (like *a seat can't be sold twice for the same show*) using constraints, plus triggers and PL/SQL procedures where a constraint wasn't enough. A React + Express web app sits on top and calls those procedures, so every rule still lives in the database.
 
+**Final submitted version:** Git tag `final` · commit `COMMIT_HASH_HERE`
+
 ---
 
 ## Team
@@ -23,7 +25,7 @@ Right now people use one app to log the films they like and a totally different 
 - [x] Requirements, business rules and assumptions
 - [x] ER/EER diagram, relational schema, normalization up to 3NF/BCNF
 - [x] 15 tables with PK / FK / UNIQUE / NOT NULL / CHECK constraints
-- [x] Sample data (8 users, 12 movies, 4 theatres, 84 seats, 12 shows, 12 bookings ...)
+- [x] Sample data: 8 users, 12 movies, 4 theatres, 7 screens with 40 seats each (280 seats), 12 shows + 32 upcoming shows, 12 bookings, 26 reviews ... about 510 rows in total
 - [x] 37 SQL queries (joins, GROUP BY/HAVING, subqueries, EXISTS, double NOT EXISTS, set operators, CASE)
 - [x] 5 views and a trigger that checks a booked seat belongs to the show's screen
 - [x] Integrity test script: every invalid booking gets rejected with the right Oracle error
@@ -129,7 +131,15 @@ npm install
 npm run dev                   # open http://localhost:5173
 ```
 
+On Windows use `copy .env.example .env` instead of `cp`. In `.env`, set `DB_PASSWORD` and, if needed, `DB_CONNECT_STRING` (default `localhost:1521/XEPDB1`).
+
 For the demo you can also build the frontend once (`npm run build` in `app/frontend`) and then `npm start` in the backend serves the whole app at http://localhost:4000.
+
+**If something doesn't work (Windows):**
+
+- Use **Command Prompt**, not PowerShell. PowerShell blocks `npm` with "running scripts is disabled on this system".
+- If SQL Developer says `ORA-12541: No listener` or the app shows `NJS-503: connection to host 127.0.0.1 ... could not be established`, Oracle is listening on your computer's name instead of `localhost`. Use that name as the host, both in SQL Developer and in `.env`, e.g. `DB_CONNECT_STRING=MY-LAPTOP:1521/XEPDB1`.
+- If the Shows page is empty, the upcoming shows are in the past. Run `08_upcoming_shows.sql` again.
 
 **4. (Optional) Re-generate the test report.** Python 3 and `reportlab` are needed. Put your connection details in `oracle_credentials.txt` (this file is git-ignored), then:
 

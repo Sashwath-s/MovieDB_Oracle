@@ -4,8 +4,9 @@
 -- and auto-commit OFF.
 --
 -- Show 13 = tomorrow 18:30, RRR, Cineplex Central Screen 1 (IMAX)
---   Screen 1 seats: A1-A4 = 101-104, B1-B4 = 105-108,
---                   C1-C4 = 109-112 (PREMIUM, base price + 100)
+--   Screen 1 has 40 seats (rows A-D, 1-10). The ones used below:
+--   A1-A4 = 101-104, B1-B4 = 105-108 (regular),
+--   C1-C4 = 109-112 (PREMIUM, base price + 100)
 --
 -- Parts 2 and 8 COMMIT (a booking that is then cancelled, so the seats
 -- end up free again and the script can be re-run). Parts 5 and 6 end
@@ -19,7 +20,7 @@ VARIABLE v_booking NUMBER;
 
 -- =====================================================================
 -- PART 1. Functions
--- Expected: 250 (regular), 350 (premium), 12 seats left
+-- Expected: 250 (regular), 350 (premium), 40 seats left
 -- =====================================================================
 SELECT get_seat_price(13, 101) AS regular_price,
        get_seat_price(13, 109) AS premium_price,
@@ -48,7 +49,7 @@ SELECT booking_id, username, title, booking_status, seat_count, total_amount, pa
 FROM   booking_summary
 WHERE  booking_id = :v_booking;
 
--- Expected: 9
+-- Expected: 37
 SELECT seats_left(13) AS seats_left_after_booking FROM dual;
 
 
@@ -77,7 +78,7 @@ WHERE  user_id = 1 AND show_id = 13;
 
 SELECT seat_label, seat_status
 FROM   show_seat_status
-WHERE  show_id = 13 AND seat_row = 'B'
+WHERE  show_id = 13 AND seat_row = 'B' AND seat_number <= 4
 ORDER  BY seat_number;
 
 
@@ -117,8 +118,8 @@ EXEC cancel_booking(12345);
 -- =====================================================================
 EXEC book_seats(4, 13, '101,102', :v_booking);
 
--- Expected: 7 (this session sees its own uncommitted change;
--- another session would still see 9 until we COMMIT)
+-- Expected: 35 (this session sees its own uncommitted change;
+-- another session would still see 37 until we COMMIT)
 SELECT seats_left(13) AS seats_left_uncommitted FROM dual;
 
 -- Paying with an invalid method fails on ck_pay_method.
@@ -134,7 +135,7 @@ WHERE  booking_id = :v_booking;
 -- Changed our mind: undo the whole transaction
 ROLLBACK;
 
--- Expected: 9 again, and the booking row is gone
+-- Expected: 37 again, and the booking row is gone
 SELECT seats_left(13) AS seats_left_after_rollback FROM dual;
 SELECT COUNT(*) AS rows_for_rolled_back_booking FROM booking WHERE booking_id = :v_booking;
 
@@ -199,5 +200,5 @@ FROM   booking_summary
 WHERE  username = 'priya_s' AND show_start > SYSDATE
 ORDER  BY booking_id;
 
--- Expected: 12 (all seats free again)
+-- Expected: 40 (all seats free again)
 SELECT seats_left(13) AS seats_left_at_end FROM dual;

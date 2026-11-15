@@ -10,7 +10,7 @@ OUT = pathlib.Path(__file__).resolve().parents[1] / "Database_Design_Document.pd
 story = []
 story += [P("Movie Discovery, Review &amp; Cinema Booking Database", "title"), Spacer(1, 3),
           P("Database Design Document", "subtitle"), Spacer(1, 2),
-          Spacer(1, 4), members_table(), Spacer(1, 4), P("Tech: Oracle 21c XE, SQL / PL/SQL, SQL Developer", "meta"), Spacer(1, 6)]
+          Spacer(1, 4), members_table(), Spacer(1, 4), P("Tech: Oracle 21c XE, SQL / PL/SQL, SQL Developer · Node.js + Express · React", "meta"), Spacer(1, 6)]
 
 # 1 -------------------------------------------------------------------------
 story += [P("1. What our project is about", "h1"),
@@ -194,6 +194,33 @@ story += bullets([
     "every statement in the request worked, and rolls back otherwise.",
     "<b>No \"is the seat free?\" check before inserting.</b> Two users could both see a seat as free at the same moment. Instead we rely "
     "on UNIQUE (show_id, seat_id): Oracle checks it at insert time, so the second booking waits for the first and then fails.",
+])
+
+# 9 -------------------------------------------------------------------------
+story += [P("9. Workflows, Architecture and UI", "h1"),
+          P("<b>Main workflows.</b> Each one is a page in the web app and is backed by the database objects listed.")]
+wf = [
+    ["Workflow", "What the user does", "Database side"],
+    ["Browse and search", "Filter movies by title, genre, language; sort by rating", "MOVIE_DETAILS, MOVIE_RATING_SUMMARY views"],
+    ["Movie page", "See cast, genres, reviews and upcoming shows", "views + seats_left()"],
+    ["Rate / review", "Give 0.5-5 stars, optional text; edit or delete it", "save_review (MERGE), CK on rating, watchlist trigger"],
+    ["Watchlist", "Add / remove movies; see which are in theatres", "WATCHLIST (composite PK)"],
+    ["Find shows", "Filter shows by city, date and movie", "THEATRE_SHOW_SCHEDULE view, seats_left()"],
+    ["Book seats", "Pick seats on a seat map and book them", "SHOW_SEAT_STATUS view, book_seats, UNIQUE (show_id, seat_id)"],
+    ["Pay / cancel", "Pay (simulated) or cancel a booking", "make_payment, cancel_booking, BOOKING_SUMMARY view"],
+    ["Admin", "Add a movie with genres; schedule a show", "MOVIE + MOVIE_GENRE in one transaction; UNIQUE (screen_id, show_start)"],
+]
+story += [table(wf, [27 * mm, 66 * mm, WIDTH - 93 * mm], raw=True), Spacer(1, 3)]
+story += bullets([
+    "<b>Architecture:</b> three tiers. A React frontend (Vite + Tailwind CSS) calls a REST API written in Node.js + Express, which "
+    "talks to Oracle 21c XE through node-oracledb (connection pool). Every query uses bind variables, and every request that changes "
+    "data runs in one transaction: COMMIT if all statements worked, ROLLBACK otherwise.",
+    "<b>The rules stay in the database.</b> The API doesn't re-check ratings, seats or statuses. It calls the procedures, and if Oracle "
+    "raises an error (e.g. a seat that is already booked) it turns that into a readable message for the UI.",
+    "<b>UI:</b> pages for Movies, Movie details, Shows, Seat map, Payment, My bookings, Watchlist, Admin and Reports (which runs some "
+    "of our SQL queries live and shows their SQL). There is no login; a drop-down picks which sample user you are acting as.",
+    "<b>Size:</b> 15 tables (10 entities + 5 link tables for the M:N relationships) and about 510 rows after loading the sample data "
+    "and the upcoming shows (280 seats, 44 shows, 26 reviews, 21 booked seats, etc.).",
 ])
 
 doc = SimpleDocTemplate(str(OUT), pagesize=PAGE, leftMargin=MARGIN, rightMargin=MARGIN, topMargin=16 * mm,

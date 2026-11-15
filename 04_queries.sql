@@ -268,7 +268,7 @@ WHERE  NOT EXISTS (SELECT 1
                    WHERE  sh.movie_id = m.movie_id);
 
 -- Q28. [NOT EXISTS] Available seats for show 1 (RRR, IMAX, 02-Oct 18:30).
--- Expected: A1, A2, A3, A4, C3, C4
+-- Expected: 34 seats, i.e. every seat in rows A-D except B1, B2, B3, B4, C1, C2
 SELECT st.seat_row || st.seat_number AS seat, st.seat_type
 FROM   movie_show sh
 JOIN   seat st ON st.screen_id = sh.screen_id

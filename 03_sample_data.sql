@@ -195,22 +195,34 @@ INSERT INTO screen VALUES (6, 3, 1, '2D');
 INSERT INTO screen VALUES (7, 4, 1, '2D');
 
 -- ---------------------------------------------------------------------
--- SEATS: every screen gets rows A, B, C with seats 1-4 (12 seats/screen,
--- 84 seats total). Row C is PREMIUM.
--- seat_id = screen_id*100 + position, e.g. screen 1: A1=101 ... C4=112
---   Row A -> x01..x04, Row B -> x05..x08, Row C -> x09..x12
--- A small anonymous PL/SQL block avoids writing 84 INSERT statements.
+-- SEATS: every screen gets rows A-D with seats 1-10 (40 seats/screen,
+-- 280 seats total). Rows C and D (the back rows) are PREMIUM.
+-- seat_id = screen_id*100 + a number from 01 to 40:
+--   A1-A4 -> x01..x04, B1-B4 -> x05..x08, C1-C4 -> x09..x12
+--   A5-A10 -> x13..x18, B5-B10 -> x19..x24, C5-C10 -> x25..x30
+--   D1-D10 -> x31..x40
+-- (The first 12 seats keep the IDs they had when screens had 12 seats,
+--  so the bookings below and the tests in 06/09 still refer to the same
+--  seats, e.g. 105 = screen 1 seat B1, 109 = screen 1 seat C1.)
+-- A small anonymous PL/SQL block avoids writing 280 INSERT statements.
 -- ---------------------------------------------------------------------
+DECLARE
+  v_id seat.seat_id%TYPE;
 BEGIN
-  FOR s IN 1 .. 7 LOOP
-    FOR r IN 1 .. 3 LOOP
-      FOR n IN 1 .. 4 LOOP
+  FOR s IN 1 .. 7 LOOP                 -- screen
+    FOR r IN 1 .. 4 LOOP               -- row: 1 = A ... 4 = D
+      FOR n IN 1 .. 10 LOOP            -- seat number in the row
+        v_id := CASE
+                  WHEN r <= 3 AND n <= 4 THEN s * 100 + (r - 1) * 4 + n         -- x01..x12
+                  WHEN r <= 3            THEN s * 100 + 12 + (r - 1) * 6 + (n - 4) -- x13..x30
+                  ELSE                        s * 100 + 30 + n                   -- x31..x40
+                END;
         INSERT INTO seat (seat_id, screen_id, seat_row, seat_number, seat_type)
-        VALUES (s * 100 + (r - 1) * 4 + n,
+        VALUES (v_id,
                 s,
                 CHR(64 + r),                          -- 65 = 'A'
                 n,
-                CASE WHEN r = 3 THEN 'PREMIUM' ELSE 'REGULAR' END);
+                CASE WHEN r >= 3 THEN 'PREMIUM' ELSE 'REGULAR' END);
       END LOOP;
     END LOOP;
   END LOOP;
@@ -306,7 +318,7 @@ UNION ALL SELECT 'REVIEW',       COUNT(*) FROM review       -- 26
 UNION ALL SELECT 'WATCHLIST',    COUNT(*) FROM watchlist    -- 15
 UNION ALL SELECT 'THEATRE',      COUNT(*) FROM theatre      -- 4
 UNION ALL SELECT 'SCREEN',       COUNT(*) FROM screen       -- 7
-UNION ALL SELECT 'SEAT',         COUNT(*) FROM seat         -- 84
+UNION ALL SELECT 'SEAT',         COUNT(*) FROM seat         -- 280
 UNION ALL SELECT 'MOVIE_SHOW',   COUNT(*) FROM movie_show   -- 12
 UNION ALL SELECT 'BOOKING',      COUNT(*) FROM booking      -- 12
 UNION ALL SELECT 'BOOKING_SEAT', COUNT(*) FROM booking_seat -- 21
@@ -322,5 +334,5 @@ UNION ALL SELECT 'PAYMENT',      COUNT(*) FROM payment     /* 12 */;
 --  * aarav_k, priya_s, karthik_n: reviewed every Sci-Fi movie
 --  * RRR average rating is exactly 4.0 (boundary case for "> 4")
 --  * Cineplex Central: the only theatre with more than 2 screens
---  * Show 1 (RRR, IMAX): 6 of 12 seats booked
+--  * Show 1 (RRR, IMAX): 6 of 40 seats booked
 -- ---------------------------------------------------------------------
